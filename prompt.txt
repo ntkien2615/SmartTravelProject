@@ -1,0 +1,259 @@
+
+📋 Prompt Hoàn Chỉnh: SmartTravelProject (UI/UX, PEP 8)
+1. Tên dự án & Mục tiêu:
+
+Tên: SmartTravelProject
+
+Mục tiêu: Xây dựng một web app demo bằng Streamlit (Multi-Page App), tập trung vào UI/UX. Ứng dụng phải có giao diện mượt mà với tông màu xanh dương (#1877F2) và phân biệt rõ 2 trạng thái: Công khai (khách) và Thành viên (đã đăng nhập).
+
+2. Chuẩn Code & Chất lượng (Rất quan trọng):
+
+Tuân thủ PEP 8: Toàn bộ code Python phải tuân thủ theo chuẩn PEP 8.
+
+Tên biến & Tên hàm: Sử dụng kiểu snake_case (viết thường, phân cách bằng dấu gạch dưới).
+
+Tốt: def handle_login, user_name, search_results
+
+Xấu: HandleLogin, userName, Searchresults
+
+Tên Class (Nếu có): Sử dụng kiểu CamelCase (viết hoa chữ cái đầu mỗi từ).
+
+Comments: Code phải có bình luận (comment) rõ ràng tại các khối logic phức tạp, đặc biệt là tại các "Vị trí chờ API".
+
+3. Ngăn xếp công nghệ (Tech Stack):
+
+Framework: Streamlit
+
+Database (Demo): SQLite3 (sử dụng thư viện sqlite3)
+
+Hashing Mật khẩu: bcrypt (Cài đặt: pip install bcrypt)
+
+Thư viện Dữ liệu: pandas (để xử lý dữ liệu cho bản đồ st.map)
+
+4. Thiết lập Giao diện & Theme (UI Config):
+
+Tệp SmartTravel.py (Tệp chính): Phải chứa st.set_page_config để áp dụng theme toàn cục.
+
+Python
+
+# SmartTravel.py (dòng đầu tiên)
+import streamlit as st
+
+st.set_page_config(
+    page_title="SmartTravelProject",
+    page_icon="✈️",
+    layout="wide",
+    # Cấu hình theme màu xanh chủ đạo
+    theme={ 
+        "primaryColor": "#1877F2", # Màu chính cho nút, widget
+        "backgroundColor": "#FFFFFF", # Nền chính
+        "secondaryBackgroundColor": "#F0F2F5", # Nền phụ (sidebar, container)
+        "textColor": "#050505",
+        "font": "sans serif"
+    }
+)
+CSS Tùy chỉnh: Tải file style.css để tùy chỉnh giao diện "Thẻ" (Card) cho st.container. (Ví dụ: thêm box-shadow).
+
+5. Cấu trúc Database (SQLite3):
+
+Cần một hàm init_db() để tự động tạo các bảng này.
+
+users: id (INTEGER PRIMARY KEY), username (TEXT UNIQUE), password_hash (TEXT)
+
+search_history: id, user_id (FOREIGN KEY users.id), query (TEXT), timestamp (DATETIME)
+
+collections: id, user_id (FOREIGN KEY users.id), name (TEXT)
+
+saved_places: id, collection_id (FOREIGN KEY collections.id), place_name, address, image_url, latitude, longitude
+
+6. Logic Cốt lõi: Quản lý Trạng thái (Session State):
+
+Sử dụng st.session_state để lưu:
+
+st.session_state['logged_in'] (Boolean)
+
+st.session_state['username'] (String)
+
+st.session_state['user_id'] (Integer)
+
+Luồng bảo vệ (Auth Guard): MỌI trang của "Thành viên" (Dashboard, Khám phá,...) phải có đoạn code này ở đầu:
+
+Python
+
+# Đặt ở đầu mỗi file trong thư mục pages/
+import streamlit as st
+
+if not st.session_state.get('logged_in'):
+    st.warning("Bạn cần đăng nhập để truy cập trang này.")
+    st.switch_page("pages/2_Dang_nhap.py")
+    st.stop()
+7. Cấu trúc Tệp & Chi tiết Giao diện (UI Flow):
+
+7.1. Tệp Chính: SmartTravel.py (Trang chủ Công khai)
+Logic:
+
+Tải st.set_page_config (Theme).
+
+Tải style.css.
+
+Gọi init_db().
+
+Kiểm tra: Nếu st.session_state.get('logged_in') == True, tự động chuyển hướng đến Dashboard (st.switch_page("pages/1_Dashboard.py")).
+
+UI (Khi chưa đăng nhập):
+
+st.title("Chào mừng đến với SmartTravelProject ✈️").
+
+Dùng st.columns(3) để giới thiệu 3 tính năng. Mỗi cột có st.image (icon) và st.subheader.
+
+Nút "Đăng nhập" và "Đăng ký" nổi bật, trỏ đến trang pages/2_Dang_nhap.py.
+
+7.2. pages/1_Dashboard.py (Trang chủ Thành viên)
+Logic: Chạy "Auth Guard" ở đầu.
+
+UI:
+
+st.header(f"Chào mừng trở lại, {st.session_state.username}!")
+
+Bố cục st.columns([2, 1]) (cột trái 60%, cột phải 40%).
+
+Cột trái: "Lịch sử tìm kiếm" và "Các Bộ sưu tập" (Lấy từ SQLite).
+
+Cột phải (AI Placeholder): "Gợi ý cho bạn hôm nay".
+
+📍 Vị trí chờ API (Đề xuất):
+
+Python
+
+def get_ai_recommendations(user_id):
+    # ---- TODO: Kết nối API thuật toán đề xuất ----
+    # response = requests.get(f"api/recommend?user={user_id}")
+    # return response.json()['recommendations']
+
+    # ---- Dữ liệu giả lập (Mock data) cho UI ----
+    return [
+        {'name': 'Quán Phở Demo', 'img': 'url1', 'desc': 'Gợi ý vì bạn thích phở'},
+        {'name': 'Cafe Yên Tĩnh', 'img': 'url2', 'desc': 'Gợi ý vì bạn tìm "yên tĩnh"'}
+    ]
+
+recommendations = get_ai_recommendations(st.session_state['user_id'])
+for item in recommendations:
+    with st.container(border=True):
+        st.write(item['name'])
+        st.caption(item['desc'])
+7.3. pages/2_Dang_nhap.py
+Logic:
+
+Kiểm tra: Nếu st.session_state.get('logged_in') == True, tự động chuyển hướng đến Dashboard.
+
+UI:
+
+Dùng st.tabs(["Đăng nhập", "Đăng ký"]).
+
+Tab "Đăng nhập": Dùng st.form("login_form").
+
+Hàm handle_login(username, password): Kiểm tra bcrypt và set st.session_state.
+
+Tab "Đăng ký": Dùng st.form("register_form").
+
+Hàm handle_register(username, password, confirm_password): Hash bcrypt và lưu vào SQLite.
+
+7.4. pages/3_Kham_pha.py (Tính năng 1 & 3)
+Logic: Chạy "Auth Guard".
+
+UI:
+
+st.sidebar: Dành cho tất cả các bộ lọc (Tìm kiếm, Giá, Loại hình...).
+
+Khu vực chính (Hiển thị kết quả):
+
+📍 Vị trí chờ API (Tìm kiếm):
+
+Python
+
+def search_locations(query, filters):
+    # ---- TODO: Kết nối API tìm kiếm ----
+    # params = {'query': query, **filters}
+    # response = requests.get("api/search", params=params)
+    # return response.json()['results']
+
+    # ---- Dữ liệu giả lập (Mock data) cho UI ----
+    return [
+        {'id': 1, 'name': 'Địa điểm A', 'img': 'urlA', 'addr': '123 ABC', 'lat': 10.0, 'lon': 106.0},
+        {'id': 2, 'name': 'Địa điểm B', 'img': 'urlB', 'addr': '456 XYZ', 'lat': 10.1, 'lon': 106.1}
+    ]
+
+results = search_locations(query_from_sidebar, filters_from_sidebar)
+for item in results:
+    with st.container(border=True): # Áp dụng CSS 'Card'
+        col1, col2 = st.columns([1, 2])
+        with col1:
+            st.image(item['img'])
+        with col2:
+            st.subheader(item['name'])
+            st.caption(item['addr'])
+            st.button("Lưu", key=f"save_{item['id']}")
+
+            # 📍 Vị trí chờ API (Tìm đường)
+            if st.button("Chỉ đường", key=f"nav_{item['id']}"):
+                # route = get_directions_api(start, (item['lat'], item['lon']))
+                # st.map(route['data'])
+                st.map(pd.DataFrame({'lat': [item['lat']], 'lon': [item['lon']]}))
+7.5. pages/4_Nhan_dien.py (Tính năng 2)
+Logic: Chạy "Auth Guard".
+
+UI:
+
+st.header("Nhận diện địa điểm qua ảnh")
+
+uploaded_file = st.file_uploader("Tải ảnh lên đây", type=['jpg', 'png'])
+
+📍 Vị trí chờ API (Nhận diện ảnh):
+
+Python
+
+def analyze_image_location(image_bytes):
+    # ---- TODO: Kết nối API nhận diện ảnh ----
+    # files = {'image': image_bytes}
+    # response = requests.post("api/analyze", files=files)
+    # return response.json()
+
+    # ---- Dữ liệu giả lập (Mock data) cho UI ----
+    return {'status': 'success', 'place_name': 'Nhà Thờ Đức Bà (Demo)', 'lat': 10.7797, 'lon': 106.6994}
+
+if uploaded_file:
+    with st.spinner("Đang phân tích ảnh..."):
+        image_data = uploaded_file.getvalue()
+        result = analyze_image_location(image_data)
+
+    if result['status'] == 'success':
+        st.success(f"Kết quả: {result['place_name']}")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.image(uploaded_file, caption="Ảnh bạn tải lên")
+        with col2:
+            st.map(pd.DataFrame({'lat': [result['lat']], 'lon': [result['lon']]}))
+    else:
+        st.error("Không thể nhận diện được địa điểm.")
+7.6. pages/5_Ho_so.py (Profile)
+Logic: Chạy "Auth Guard".
+
+UI:
+
+st.header("Hồ sơ của bạn")
+
+Dùng st.tabs(["Bộ sưu tập", "Tài khoản"]).
+
+Tab "Bộ sưu tập": Hiển thị và quản lý collections và saved_places từ SQLite.
+
+Tab "Tài khoản":
+
+Hiển thị tên người dùng.
+
+Nút Đăng xuất (Quan trọng):
+
+Python
+
+if st.button("Đăng xuất", type="primary", use_container_width=True):
+    st.session_state.clear() # Xóa toàn bộ session
+    st.switch_page("SmartTravel.py") # Về trang chủ
