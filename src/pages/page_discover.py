@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from components.ui_components import render_section_header
 
 def render_discover_page():
-    """Render discover/search page."""
+    """Render discover/search page - now shows route finding."""
     st.markdown("""
         <div style="
             background: linear-gradient(135deg, #1E88E5 0%, #26A69A 100%);
@@ -20,8 +20,8 @@ def render_discover_page():
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             text-align: center;
         ">
-            <h1 style="color: white; margin: 0; font-size: 3rem;">🔍 Khám phá địa điểm</h1>
-            <p style="margin: 1rem 0 0 0; opacity: 0.9; font-size: 1.2rem;">Tìm kiếm và khám phá những địa điểm tuyệt vời</p>
+            <h1 style="color: white; margin: 0; font-size: 3rem;">�️ Tìm đường đi</h1>
+            <p style="margin: 1rem 0 0 0; opacity: 0.9; font-size: 1.2rem;">Tìm kiếm và lập kế hoạch hành trình của bạn</p>
         </div>
     """, unsafe_allow_html=True)
     

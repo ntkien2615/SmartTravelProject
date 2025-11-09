@@ -270,49 +270,104 @@ h3 {
     margin-bottom: var(--spacing-sm);
 }
 
-/* === Navigation Menu === */
-/* Force nav container to be full width */
-div[data-testid="stVerticalBlock"]:has(div.menu) {
-    margin-left: calc(-50vw + 50%) !important;
-    margin-right: calc(-50vw + 50%) !important;
-    width: 100vw !important;
-    max-width: 100vw !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-}
+/* === Modern Navigation Menu === */
 
-/* Navigation menu wrapper */
-div.menu {
-    background: #E8F1FA !important;
-    width: 100vw !important;
-    margin: 0 !important;
-    padding: 0.5rem 0 !important;
-}
-
-/* Streamlit option menu container */
-.container-xxl {
-    background: #E8F1FA !important;
-}
-
+/* Navigation bar - Modern style like Airbnb, Stripe, etc. */
 nav[data-testid="stHorizontalBlock"] {
-    background: #E8F1FA;
-    box-shadow: var(--shadow-md);
-    padding: var(--spacing-sm) 0;
-    margin-bottom: var(--spacing-xl);
-    border-radius: var(--radius-lg);
+    background: #FFFFFF;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border-bottom: 1px solid #E8E8E8;
+    padding: 8px 24px;
+    margin-bottom: 0;
     width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    transition: all 0.3s ease;
 }
 
-/* Remove any black gaps in nav */
+/* Navigation on scroll effect */
+nav[data-testid="stHorizontalBlock"]:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+/* Navigation container */
+.container-xxl {
+    background: #FFFFFF !important;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* Navigation links styling */
 nav[data-testid="stHorizontalBlock"] > div {
-    background: #E8F1FA !important;
+    background: #FFFFFF !important;
     width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
-/* Style for menu title (SmartTravel) */
+/* Brand/Logo styling */
 .css-1544g2n, .css-10trblm {
-    color: #000000 !important;
+    color: #1E88E5 !important;
     font-weight: 700 !important;
+    font-size: 24px !important;
+    letter-spacing: -0.5px;
+}
+
+/* Navigation menu items */
+.nav-link {
+    color: #333333 !important;
+    font-weight: 500;
+    font-size: 15px;
+    padding: 10px 20px;
+    margin: 0 4px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Navigation hover effect */
+.nav-link:hover {
+    background-color: #F5F5F5;
+    color: #1E88E5 !important;
+    transform: translateY(-1px);
+}
+
+/* Active navigation item */
+.nav-link-selected,
+.nav-link.active {
+    background-color: #1E88E5 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 2px 8px rgba(30, 136, 229, 0.3);
+}
+
+/* Navigation icons */
+.nav-link i,
+.nav-link svg {
+    font-size: 18px;
+    margin-right: 6px;
+}
+
+/* Responsive navigation */
+@media (max-width: 768px) {
+    nav[data-testid="stHorizontalBlock"] {
+        padding: 8px 12px;
+    }
+    
+    .nav-link {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+    
+    .css-1544g2n, .css-10trblm {
+        font-size: 20px !important;
+    }
 }
 
 /* === Sidebar === */
