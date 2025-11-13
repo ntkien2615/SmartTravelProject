@@ -1,0 +1,652 @@
+/* ========================================
+   style.css - SmartTravel Custom Styles
+   SmartTravel - Modern Professional CSS
+   ======================================== */
+
+/* Card styling for st.container */
+
+[data-testid="stVerticalBlock"] {
+
+/* === Color Scheme === */    transition: box-shadow 0.3s ease;
+
+:root {}
+
+    /* Primary Colors */
+
+    --primary-blue: #1E88E5;/* Hover effects for cards */
+
+    --primary-dark: #1565C0;.stContainer:has([data-testid="stVerticalBlock"]) {
+
+    --primary-light: #42A5F5;    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+        border-radius: 8px;
+
+    /* Secondary Colors */    padding: 12px;
+
+    --secondary-teal: #26A69A;}
+
+    --secondary-orange: #FF7043;
+
+    /* Responsive design */
+
+    /* Neutrals */@media (max-width: 768px) {
+
+    --white: #FFFFFF;    [data-testid="stVerticalBlock"] {
+
+    --gray-50: #FAFAFA;        padding: 8px !important;
+
+    --gray-100: #F5F5F5;    }
+
+    --gray-200: #EEEEEE;}
+    --gray-300: #E0E0E0;
+    --gray-400: #BDBDBD;
+    --gray-500: #9E9E9E;
+    --gray-600: #757575;
+    --gray-700: #616161;
+    --gray-800: #424242;
+    --gray-900: #212121;
+    
+    /* Semantic Colors */
+    --success: #4CAF50;
+    --warning: #FFC107;
+    --error: #F44336;
+    --info: #2196F3;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    
+    /* Border Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-full: 9999px;
+    
+    /* Spacing */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --spacing-2xl: 48px;
+}
+
+/* === Global Styles === */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    color: #000000;
+    background-color: #FFFFFF;
+    line-height: 1.6;
+}
+
+/* === Streamlit Overrides === */
+
+/* Force white background everywhere - highest priority */
+.stApp,
+.stApp > header,
+.stApp [data-testid="stAppViewContainer"],
+.main,
+[data-testid="stAppViewContainer"],
+[data-testid="stDecoration"],
+body {
+    background-color: #FFFFFF !important;
+}
+
+/* Remove default Streamlit padding */
+.main .block-container {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    max-width: 1200px;
+    background-color: #FFFFFF;
+}
+
+/* Force all backgrounds to white */
+section[data-testid="stSidebar"] > div,
+[data-testid="stHeader"],
+[data-testid="stToolbar"] {
+    background-color: #FFFFFF !important;
+}
+
+/* Remove any dark theme remnants */
+.stApp::before,
+.stApp::after {
+    display: none !important;
+}
+
+/* Hide Streamlit branding */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+
+/* === Typography === */
+h1, h2, h3, h4, h5, h6 {
+    color: #000000;
+    font-weight: 600;
+    margin-bottom: var(--spacing-md);
+}
+
+h1 {
+    font-size: 2.5rem;
+    line-height: 1.2;
+}
+
+h2 {
+    font-size: 2rem;
+    line-height: 1.3;
+}
+
+h3 {
+    font-size: 1.5rem;
+    line-height: 1.4;
+}
+
+/* === Card Styles === */
+[data-testid="stVerticalBlock"] > [data-testid="stVerticalBlock"] {
+    background: #FFFFFF;
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-md);
+    transition: all 0.3s ease;
+    border: 2px solid #E0E0E0;
+}
+
+[data-testid="stVerticalBlock"] > [data-testid="stVerticalBlock"]:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+    border-color: #BDBDBD;
+}
+
+/* === Buttons === */
+.stButton > button {
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-dark) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-sm);
+    width: 100%;
+}
+
+.stButton > button:hover {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-blue) 100%);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+.stButton > button:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Secondary Button */
+.stButton > button[kind="secondary"] {
+    background: var(--white);
+    color: var(--primary-blue);
+    border: 2px solid var(--primary-blue);
+}
+
+.stButton > button[kind="secondary"]:hover {
+    background: var(--gray-50);
+}
+
+/* === Input Fields === */
+.stTextInput > div > div > input,
+.stTextArea > div > div > textarea,
+.stSelectbox > div > div > div,
+.stMultiselect > div > div > div {
+    border-radius: var(--radius-md);
+    border: 2px solid #BDBDBD;
+    padding: 10px 14px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background-color: #FFFFFF;
+    color: #000000;
+}
+
+.stTextInput > div > div > input:focus,
+.stTextArea > div > div > textarea:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(30, 136, 229, 0.1);
+    outline: none;
+}
+
+/* Input labels */
+.stTextInput label,
+.stTextArea label,
+.stSelectbox label,
+.stMultiselect label {
+    color: #000000 !important;
+    font-weight: 500;
+}
+
+/* === Cards for Content === */
+.content-card {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    box-shadow: var(--shadow-md);
+    margin-bottom: var(--spacing-lg);
+    border: 1px solid var(--gray-200);
+}
+
+/* === Feature Cards === */
+.feature-card {
+    text-align: center;
+    padding: var(--spacing-xl);
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    transition: all 0.3s ease;
+    border: 1px solid var(--gray-200);
+    height: 100%;
+}
+
+.feature-card:hover {
+    box-shadow: var(--shadow-xl);
+    transform: translateY(-5px);
+    border-color: var(--primary-blue);
+}
+
+.feature-card img {
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.feature-card h3 {
+    color: var(--primary-blue);
+    margin-bottom: var(--spacing-sm);
+}
+
+/* === Modern Navigation Menu === */
+
+/* Navigation bar - Modern style like Airbnb, Stripe, etc. */
+nav[data-testid="stHorizontalBlock"] {
+    background: #FFFFFF;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border-bottom: 1px solid #E8E8E8;
+    padding: 8px 24px;
+    margin-bottom: 0;
+    width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+/* Navigation on scroll effect */
+nav[data-testid="stHorizontalBlock"]:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+/* Navigation container */
+.container-xxl {
+    background: #FFFFFF !important;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* Navigation links styling */
+nav[data-testid="stHorizontalBlock"] > div {
+    background: #FFFFFF !important;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Brand/Logo styling */
+.css-1544g2n, .css-10trblm {
+    color: #1E88E5 !important;
+    font-weight: 700 !important;
+    font-size: 24px !important;
+    letter-spacing: -0.5px;
+}
+
+/* Navigation menu items */
+.nav-link {
+    color: #333333 !important;
+    font-weight: 500;
+    font-size: 15px;
+    padding: 10px 20px;
+    margin: 0 4px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Navigation hover effect */
+.nav-link:hover {
+    background-color: #F5F5F5;
+    color: #1E88E5 !important;
+    transform: translateY(-1px);
+}
+
+/* Active navigation item */
+.nav-link-selected,
+.nav-link.active {
+    background-color: #1E88E5 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 2px 8px rgba(30, 136, 229, 0.3);
+}
+
+/* Navigation icons */
+.nav-link i,
+.nav-link svg {
+    font-size: 18px;
+    margin-right: 6px;
+}
+
+/* Responsive navigation */
+@media (max-width: 768px) {
+    nav[data-testid="stHorizontalBlock"] {
+        padding: 8px 12px;
+    }
+    
+    .nav-link {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+    
+    .css-1544g2n, .css-10trblm {
+        font-size: 20px !important;
+    }
+}
+
+/* === Sidebar === */
+[data-testid="stSidebar"] {
+    background: var(--white);
+    border-right: 1px solid var(--gray-200);
+}
+
+[data-testid="stSidebar"] > div:first-child {
+    background: var(--white);
+}
+
+/* === File Uploader === */
+[data-testid="stFileUploader"] {
+    background: var(--gray-50);
+    border: 2px dashed var(--gray-300);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    transition: all 0.3s ease;
+}
+
+[data-testid="stFileUploader"]:hover {
+    border-color: var(--primary-blue);
+    background: var(--white);
+}
+
+/* === Tabs === */
+.stTabs [data-baseweb="tab-list"] {
+    gap: var(--spacing-md);
+    background: #E0E0E0;
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-sm);
+}
+
+.stTabs [data-baseweb="tab"] {
+    border-radius: var(--radius-md);
+    padding: 10px 20px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    color: #000000;
+    background: #FFFFFF;
+}
+
+.stTabs [data-baseweb="tab"]:hover {
+    background: #F5F5F5;
+}
+
+.stTabs [aria-selected="true"] {
+    background: var(--primary-blue) !important;
+    color: var(--white) !important;
+}
+
+/* === Alert Messages === */
+.stAlert {
+    border-radius: var(--radius-md);
+    border: none;
+    box-shadow: var(--shadow-sm);
+}
+
+/* Success */
+[data-testid="stAlert"][data-baseweb="notification"][kind="success"] {
+    background-color: #E8F5E9;
+    color: #2E7D32;
+}
+
+/* Error */
+[data-testid="stAlert"][data-baseweb="notification"][kind="error"] {
+    background-color: #FFEBEE;
+    color: #C62828;
+}
+
+/* Warning */
+[data-testid="stAlert"][data-baseweb="notification"][kind="warning"] {
+    background-color: #FFF3E0;
+    color: #EF6C00;
+}
+
+/* Info */
+[data-testid="stAlert"][data-baseweb="notification"][kind="info"] {
+    background-color: #E3F2FD;
+    color: #1565C0;
+}
+
+/* === Spinner === */
+.stSpinner > div {
+    border-color: var(--primary-blue) !important;
+}
+
+/* === Progress Bar === */
+.stProgress > div > div > div {
+    background-color: var(--primary-blue);
+}
+
+/* === Map === */
+[data-testid="stDeckGlJsonChart"] {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+}
+
+/* === Images === */
+img {
+    border-radius: var(--radius-md);
+    max-width: 100%;
+    height: auto;
+}
+
+/* === Captions === */
+.caption {
+    color: var(--gray-600);
+    font-size: 0.875rem;
+    margin-top: var(--spacing-sm);
+}
+
+/* === Container with Border === */
+[data-testid="stVerticalBlock"][data-testid="column"] {
+    padding: var(--spacing-md);
+}
+
+/* === Metric Cards === */
+[data-testid="stMetric"] {
+    background: var(--white);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+}
+
+/* === Hero Section === */
+.hero-section {
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-teal) 100%);
+    color: var(--white);
+    padding: var(--spacing-2xl) var(--spacing-xl);
+    border-radius: var(--radius-xl);
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+    box-shadow: var(--shadow-xl);
+}
+
+.hero-section h1 {
+    color: var(--white);
+    font-size: 3rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.hero-section p {
+    font-size: 1.25rem;
+    opacity: 0.9;
+}
+
+/* === Responsive Design === */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2rem;
+    }
+    
+    h2 {
+        font-size: 1.5rem;
+    }
+    
+    .main .block-container {
+        padding: 1rem;
+    }
+    
+    .hero-section {
+        padding: var(--spacing-xl) var(--spacing-md);
+    }
+    
+    .hero-section h1 {
+        font-size: 2rem;
+    }
+}
+
+/* === Utility Classes === */
+.text-center {
+    text-align: center;
+}
+
+.text-primary {
+    color: var(--primary-blue);
+}
+
+.bg-white {
+    background-color: var(--white);
+}
+
+.rounded {
+    border-radius: var(--radius-md);
+}
+
+.shadow {
+    box-shadow: var(--shadow-md);
+}
+
+.mb-lg {
+    margin-bottom: var(--spacing-lg);
+}
+
+.mt-lg {
+    margin-top: var(--spacing-lg);
+}
+
+/* === Animations === */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.slide-in {
+    animation: slideIn 0.5s ease-out;
+}
+
+/* === Login/Register Forms === */
+[data-testid="stForm"] {
+    background: #FFFFFF !important;
+    border: 3px solid #1877F2 !important;
+    border-radius: var(--radius-lg) !important;
+    padding: var(--spacing-xl) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+[data-testid="stForm"] h3,
+[data-testid="stForm"] label,
+[data-testid="stForm"] p {
+    color: #000000 !important;
+}
+
+/* Form title within tabs */
+.stTabs [data-testid="stVerticalBlock"] h3 {
+    color: #000000 !important;
+    font-weight: 600;
+}
+
+/* Tab content area */
+.stTabs [data-testid="stTabContent"] {
+    background: #F9F9F9;
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    margin-top: var(--spacing-md);
+}
+
+/* Page title "Đăng nhập / Đăng ký" */
+h1#dang-nhap-dang-ky {
+    color: #000000 !important;
+}
+
+/* All h1, h2, h3 headings in main content */
+.main h1, .main h2, .main h3 {
+    color: #000000 !important;
+}
+
+/* Form submit buttons - white text */
+button[kind="secondaryFormSubmit"] {
+    background: var(--primary-blue) !important;
+    color: #FFFFFF !important;
+}
+
+button[kind="secondaryFormSubmit"] p,
+button[kind="secondaryFormSubmit"] div {
+    color: #FFFFFF !important;
+}
