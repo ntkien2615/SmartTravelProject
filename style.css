@@ -58,6 +58,32 @@ button[style*="color:#000"] {
     color: white !important;
 }
 
+/* Fix form submit buttons with proper colors */
+[data-testid="stForm"] button[type="submit"],
+[data-testid="stFormSubmitButton"] button,
+form button[data-baseweb="button"] {
+    background-color: #2563EB !important;
+    color: white !important;
+}
+
+[data-testid="stForm"] button[type="submit"] p,
+[data-testid="stFormSubmitButton"] button p,
+form button[data-baseweb="button"] p {
+    color: white !important;
+    margin: 0;
+    padding: 0;
+}
+
+/* Override any inline styles that set black background */
+button[style*="background"][style*="black"] {
+    background-color: #2563EB !important;
+}
+
+button[style*="color"][style*="black"] p,
+button[style*="background"][style*="black"] p {
+    color: white !important;
+}
+
 /* NỀN CHUNG – XANH ĐEN */
 body {
     margin: 0 !important;
@@ -155,20 +181,42 @@ h1.home-title {
     text-align: center;
     border-radius: 999px;
     padding: 0.45rem 0.5rem;
-    background-color: transparent;
-    color: #0F172A;
-    border: 1px solid transparent;
+    background-color: transparent !important;
+    color: #0F172A !important;
+    border: 1px solid transparent !important;
+    font-weight: 500 !important;
 }
 
 [data-testid="stTabs"] button[role="tab"][aria-selected="true"] {
     background-color: #2563EB !important;
     color: #ffffff !important;
-    font-weight: 600;
-    border-color: #1D4ED8;
+    font-weight: 600 !important;
+    border-color: #1D4ED8 !important;
 }
 
 [data-testid="stTabs"] button[role="tab"]:not([aria-selected="true"]):hover {
-    background-color: rgba(37,99,235,0.08);
+    background-color: rgba(37,99,235,0.08) !important;
+    color: #0F172A !important;
+}
+
+/* Fix tab text color - ensure white text on selected tabs */
+[data-testid="stTabs"] button[role="tab"][aria-selected="true"] p,
+[data-testid="stTabs"] button[role="tab"][aria-selected="true"] div,
+[data-testid="stTabs"] button[role="tab"][aria-selected="true"] span {
+    color: #ffffff !important;
+}
+
+/* Fix non-selected tab text */
+[data-testid="stTabs"] button[role="tab"]:not([aria-selected="true"]) p,
+[data-testid="stTabs"] button[role="tab"]:not([aria-selected="true"]) div,
+[data-testid="stTabs"] button[role="tab"]:not([aria-selected="true"]) span {
+    color: #0F172A !important;
+}
+
+/* Ensure tab content area has proper background */
+[data-testid="stTabs"] > div > div[role="tabpanel"] {
+    background-color: transparent !important;
+    padding: 1rem 0;
 }
 
 /* FEATURE CARD */
