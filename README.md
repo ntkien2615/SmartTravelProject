@@ -56,7 +56,7 @@ Follow these steps to run the project's Small Simulation locally:
 
 ---
 
-### 🇻🇳 Phiên bản Tiếng Việt 
+### 🇻🇳 Phiên bản Tiếng Việt x
 
 ```markdown
 # 🚀 HỆ THỐNG TỐI ƯU HÓA DU LỊCH THÔNG MINH - DỰ ÁN CT VNUHCM-US
