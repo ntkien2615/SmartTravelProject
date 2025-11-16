@@ -1,0 +1,10 @@
+{
+    "users": {
+        "a@gmail.com": "k"
+    },
+    "user_data": {
+        "a@gmail.com": {
+            "schedules": []
+        }
+    }
+}
