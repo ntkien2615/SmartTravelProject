@@ -1,7 +1,7 @@
 #core/scorer.py — Hàm đánh giá điểm đến
 
-# core/scorer.py
-from core.config import ALPHA, BETA, GAMMA, DELTA, EPSILON
+# core/algo1/scorer.py
+from .config import ALPHA, BETA, GAMMA, DELTA, EPSILON
 
 def preference_score(poi_tags, user_prefs):
     tags = set(str(poi_tags).split(";"))

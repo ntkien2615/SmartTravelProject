@@ -5,17 +5,17 @@ import db_utils
 from utils import time_to_minutes, minutes_to_str
 import os
 
-# Import algo1 modules
+# Import algo1 modules (POI optimization)
 try:
-    from core.solver_route import load_pois, plan_route
+    from core.algo1 import load_pois, plan_route
     ALGO_AVAILABLE = True
 except ImportError:
     ALGO_AVAILABLE = False
-    st.warning("⚠️ Không tìm thấy module thuật toán. Sử dụng chế độ demo.")
+    st.warning("⚠️ Không tìm thấy module algo1. Sử dụng chế độ demo.")
 
-# Import algo2 modules
+# Import algo2 modules (Routing/Navigation)
 try:
-    from core.routing import get_directions
+    from core.algo2 import get_directions
     ROUTING_AVAILABLE = True
 except ImportError:
     ROUTING_AVAILABLE = False

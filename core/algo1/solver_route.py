@@ -1,11 +1,11 @@
 #core/solver_route.py — Thuật toán chính (Greedy + Lookahead)
 
-# core/solver_route.py
+# core/algo1/solver_route.py
 import pandas as pd
 from datetime import datetime, timedelta
-from core.utils_geo import travel_info
-from core.scorer import score_candidate
-from core.config import DEFAULT_BUDGET, DEFAULT_TIME_WINDOW, DEFAULT_START
+from .utils_geo import travel_info
+from .scorer import score_candidate
+from .config import DEFAULT_BUDGET, DEFAULT_TIME_WINDOW, DEFAULT_START
 
 # ---------- Load POIs ----------
 def load_pois(csv_path):

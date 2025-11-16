@@ -1,6 +1,6 @@
-#core/utils_geo.py — Hàm hỗ trợ khoảng cách, thời gian, chi phí
+#core/algo1/utils_geo.py — Hàm hỗ trợ khoảng cách, thời gian, chi phí
 import math
-from core.config import SPEEDS_KMH, COST_PER_KM
+from .config import SPEEDS_KMH, COST_PER_KM
 
 def haversine_km(a, b):
     R = 6371
