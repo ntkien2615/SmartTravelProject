@@ -1,0 +1,21 @@
+id,name,lat,lon,tags,rating,visit_duration_min,entry_fee,open_hour,close_hour
+1,Nhà thờ Đức Bà,10.7797,106.6990,history;landmark;religious,4.5,45,0,8,17
+2,Bưu điện Trung tâm Sài Gòn,10.7798,106.6997,history;landmark;architecture,4.4,30,0,7,19
+3,Phố đi bộ Nguyễn Huệ,10.7744,106.7035,shopping;nightlife;entertainment,4.3,60,0,0,23
+4,Chợ Bến Thành,10.7726,106.6980,shopping;food;market,4.2,90,0,6,18
+5,Dinh Độc Lập,10.7768,106.6955,history;landmark;museum,4.6,60,40000,8,16
+6,Bảo tàng Chứng tích Chiến tranh,10.7793,106.6918,history;museum;culture,4.7,90,40000,7,18
+7,Công viên Tao Đàn,10.7823,106.6914,park;nature;relaxation,4.2,45,0,5,22
+8,Landmark 81,10.7944,106.7219,shopping;viewpoint;modern,4.5,120,200000,9,22
+9,Bitexco Financial Tower,10.7717,106.7046,viewpoint;landmark;modern,4.4,60,200000,9,21
+10,Bảo tàng Thành phố Hồ Chí Minh,10.7877,106.7000,history;museum;culture,4.3,75,30000,8,17
+11,Chùa Vĩnh Nghiêm,10.7991,106.6654,religious;architecture;culture,4.5,40,0,6,18
+12,Phố Tây Bùi Viện,10.7676,106.6921,nightlife;food;entertainment,4.1,90,0,18,2
+13,Công viên 23/9,10.7683,106.6955,park;nature;relaxation,4.0,30,0,5,22
+14,Nhà hát Thành phố,10.7769,106.7035,culture;entertainment;landmark,4.6,90,150000,8,22
+15,Saigon Skydeck,10.7717,106.7046,viewpoint;modern;entertainment,4.5,60,200000,9,21
+16,Bến Nhà Rồng,10.7562,106.7071,history;landmark;museum,4.3,45,20000,7,17
+17,Phố ăn vặt Vĩnh Khánh,10.7623,106.6875,food;street_food;local,4.4,60,0,16,23
+18,Khu du lịch Suối Tiên,10.8840,106.7891,entertainment;park;family,4.1,240,120000,8,18
+19,Zoo Sài Gòn,10.7878,106.7052,nature;family;education,4.2,150,60000,7,18
+20,Chợ Bình Tây,10.7499,106.6497,shopping;food;culture,4.3,75,0,6,18

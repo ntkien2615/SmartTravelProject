@@ -1,8 +1,17 @@
 """Trang Chức năng với 4 nút lựa chọn"""
 import streamlit as st
-from datetime import time
+from datetime import time, datetime
 import db_utils
 from utils import time_to_minutes, minutes_to_str
+import os
+
+# Import algo1 modules
+try:
+    from core.solver_route import load_pois, plan_route
+    ALGO_AVAILABLE = True
+except ImportError:
+    ALGO_AVAILABLE = False
+    st.warning("⚠️ Không tìm thấy module thuật toán. Sử dụng chế độ demo.")
 
 
 def page_chuc_nang():
@@ -76,29 +85,35 @@ def render_tim_kiem_nhanh():
     with col_form:
         st.markdown("#### 📝 Nhập thông tin chuyến đi")
         with st.form("quick_search_form"):
-            start_location = st.text_input("Điểm xuất phát", value="Quận 1, TP.HCM")
-            destinations_text = st.text_area(
-                "Danh sách điểm muốn đến (mỗi dòng một địa điểm)",
-                value="Nhà thờ Đức Bà\nPhố đi bộ Nguyễn Huệ\nLandmark 81",
-                height=120,
-            )
-            food_text = st.text_area(
-                "Danh sách món ăn muốn thử (mỗi dòng một món)",
-                value="Phở bò\nBánh mì thịt\nTrà sữa",
-                height=100,
-            )
+            start_location = st.text_input("Điểm xuất phát", value="Quận 1, TP.HCM", 
+                                          help="Vị trí xuất phát của bạn")
+            
+            # Thay đổi: User chọn sở thích thay vì nhập địa điểm cụ thể
+            st.markdown("**Sở thích của bạn:**")
+            col_pref1, col_pref2 = st.columns(2)
+            with col_pref1:
+                pref_history = st.checkbox("🏛️ Lịch sử / Di tích", value=True)
+                pref_food = st.checkbox("🍜 Ẩm thực", value=True)
+                pref_shopping = st.checkbox("🛍️ Mua sắm", value=False)
+                pref_nature = st.checkbox("🌳 Thiên nhiên / Công viên", value=False)
+            with col_pref2:
+                pref_modern = st.checkbox("🏙️ Hiện đại / Tòa nhà cao", value=False)
+                pref_culture = st.checkbox("🎭 Văn hóa / Bảo tàng", value=False)
+                pref_nightlife = st.checkbox("🌃 Giải trí / Phố đêm", value=False)
+                pref_religious = st.checkbox("🙏 Tôn giáo / Chùa chiền", value=False)
+            
             c1, c2 = st.columns(2)
             with c1:
-                start_time = st.time_input("Giờ bắt đầu", value=time(8, 0))
+                start_time = st.time_input("Giờ bắt đầu", value=time(9, 0))
             with c2:
-                end_time = st.time_input("Giờ kết thúc", value=time(20, 0))
+                end_time = st.time_input("Giờ kết thúc", value=time(21, 0))
             budget = st.number_input(
                 "Ngân sách tối đa (VND)",
                 min_value=0,
-                value=800000,
-                step=50000,
+                value=1000000,
+                step=100000,
             )
-            submitted = st.form_submit_button("🔍 Tạo lịch trình")
+            submitted = st.form_submit_button("🔍 Tạo lịch trình tối ưu")
 
         if not submitted:
             st.caption("⏳ Nhập xong và bấm **Tạo lịch trình** để xem kết quả.")
@@ -108,82 +123,111 @@ def render_tim_kiem_nhanh():
         if not submitted:
             st.info("Kết quả sẽ hiển thị ở đây sau khi bạn bấm nút.")
         else:
-            dest_lines = [line.strip() for line in destinations_text.splitlines() if line.strip()]
-            food_lines = [line.strip() for line in food_text.splitlines() if line.strip()]
-
-            if not dest_lines:
-                st.error("Vui lòng nhập ít nhất 1 điểm đến.")
+            # Thu thập sở thích người dùng
+            user_prefs = []
+            if pref_history: user_prefs.extend(["history", "landmark"])
+            if pref_food: user_prefs.extend(["food", "street_food"])
+            if pref_shopping: user_prefs.extend(["shopping", "market"])
+            if pref_nature: user_prefs.extend(["nature", "park"])
+            if pref_modern: user_prefs.extend(["modern", "viewpoint"])
+            if pref_culture: user_prefs.extend(["culture", "museum"])
+            if pref_nightlife: user_prefs.extend(["nightlife", "entertainment"])
+            if pref_religious: user_prefs.extend(["religious", "architecture"])
+            
+            if not user_prefs:
+                st.warning("⚠️ Vui lòng chọn ít nhất 1 sở thích!")
             else:
+                # Kiểm tra thời gian hợp lệ
                 start_min = time_to_minutes(start_time)
                 end_min = time_to_minutes(end_time)
                 if end_min <= start_min:
-                    st.warning("Giờ kết thúc phải lớn hơn giờ bắt đầu. Dùng mặc định 08:00 – 20:00.")
-                    start_min = 8 * 60
-                    end_min = 20 * 60
-
-                total_minutes = end_min - start_min
-                block = max(total_minutes // len(dest_lines), 30)
-                current = start_min
-
-                st.write(f"**Điểm xuất phát:** {start_location}")
-                st.write(f"**Thời gian:** {minutes_to_str(start_min)} – {minutes_to_str(end_min)}")
-                st.write(f"**Ngân sách:** {budget:,} VND")
-                st.markdown("---")
-
-                schedule_data = {
-                    "destinations": dest_lines,
-                    "start_time": minutes_to_str(start_min),
-                    "end_time": minutes_to_str(end_min),
-                    "budget": budget,
-                    "timeline": [],
-                }
-
-                for i, place in enumerate(dest_lines, start=1):
-                    arrive = current
-                    depart = min(current + block, end_min)
-                    current = depart
-                    schedule_data["timeline"].append({
-                        "place": place,
-                        "arrive": minutes_to_str(arrive),
-                        "depart": minutes_to_str(depart),
-                    })
-                    with st.expander(
-                        f"📍 {i}. {place} ({minutes_to_str(arrive)} – {minutes_to_str(depart)})"
-                    ):
-                        st.write(f"**Thời gian:** {minutes_to_str(arrive)} – {minutes_to_str(depart)}")
-                        st.write("**Hoạt động:** Tham quan, chụp ảnh, nghỉ ngơi.")
-                        st.write(f"**Chi phí gợi ý:** {budget // len(dest_lines):,} VND")
-
-                if food_lines:
-                    st.markdown("---")
-                    st.write("**🍜 Món ăn gợi ý**")
-                    for food in food_lines:
-                        st.write(f"- {food}")
-
-                st.session_state["latest_schedule"] = schedule_data
-
-                # Nút lưu (nếu đã đăng nhập)
-                if st.session_state.get("current_user"):
-                    st.markdown("---")
-                    col_save, col_space = st.columns([1, 2])
-                    with col_save:
-                        if st.button("💾 Lưu lịch trình"):
-                            user_id = st.session_state.get("user_id")
-                            if user_id:
-                                success = db_utils.add_schedule(
-                                    user_id,
-                                    ', '.join(dest_lines),
-                                    budget,
-                                    minutes_to_str(start_min),
-                                    minutes_to_str(end_min),
-                                    schedule_data,
-                                )
-                                if success:
-                                    st.success("✅ Lịch trình đã được lưu!")
-                                else:
-                                    st.error("❌ Có lỗi khi lưu lịch trình.")
+                    st.error("Giờ kết thúc phải lớn hơn giờ bắt đầu!")
                 else:
-                    st.info("💡 Đăng nhập để lưu lịch trình vào hồ sơ.")
+                    # Format thời gian cho algo
+                    today = datetime.now().strftime("%Y-%m-%d")
+                    time_window = (
+                        f"{today} {start_time.strftime('%H:%M')}",
+                        f"{today} {end_time.strftime('%H:%M')}"
+                    )
+                    
+                    # Chạy thuật toán
+                    if ALGO_AVAILABLE:
+                        with st.spinner("🔄 Đang tính toán lộ trình tối ưu..."):
+                            try:
+                                # Load POIs
+                                csv_path = os.path.join(os.path.dirname(__file__), "..", "data", "pois_hcm.csv")
+                                pois = load_pois(csv_path)
+                                
+                                # Gọi thuật toán
+                                route = plan_route(
+                                    pois=pois,
+                                    user_prefs=user_prefs,
+                                    start_loc=(10.7769, 106.7006),  # Tọa độ Quận 1
+                                    time_window=time_window,
+                                    budget=float(budget)
+                                )
+                                
+                                if not route:
+                                    st.error("❌ Không tìm thấy lịch trình phù hợp. Thử tăng ngân sách hoặc mở rộng thời gian.")
+                                else:
+                                    # Hiển thị kết quả
+                                    st.success(f"✅ Tìm thấy lộ trình với **{len(route)}** điểm đến!")
+                                    
+                                    total_cost = sum(r['travel_cost'] + r['entry_fee'] for r in route)
+                                    st.write(f"**📍 Điểm xuất phát:** {start_location}")
+                                    st.write(f"**⏰ Thời gian:** {start_time.strftime('%H:%M')} – {end_time.strftime('%H:%M')}")
+                                    st.write(f"**💰 Tổng chi phí:** {total_cost:,.0f} VND / {budget:,.0f} VND")
+                                    st.write(f"**🎯 Sở thích:** {', '.join(set(user_prefs))}")
+                                    st.markdown("---")
+                                    
+                                    # Hiển thị từng điểm
+                                    for i, stop in enumerate(route, 1):
+                                        mode_icon = {"walking": "🚶", "motorbike": "🏍️", "taxi": "🚕"}.get(stop['mode'], "🚗")
+                                        with st.expander(
+                                            f"{i}. {stop['name']} ({stop['arrive_time'].strftime('%H:%M')} - {stop['depart_time'].strftime('%H:%M')})"
+                                        ):
+                                            st.write(f"**🚗 Di chuyển:** {mode_icon} {stop['mode'].title()}")
+                                            st.write(f"**⏰ Đến:** {stop['arrive_time'].strftime('%H:%M')}")
+                                            st.write(f"**⏰ Rời:** {stop['depart_time'].strftime('%H:%M')}")
+                                            st.write(f"**💵 Chi phí di chuyển:** {stop['travel_cost']:,.0f} VND")
+                                            st.write(f"**🎫 Vé vào cửa:** {stop['entry_fee']:,.0f} VND")
+                                    
+                                    # Lưu vào session
+                                    schedule_data = {
+                                        "route": route,
+                                        "preferences": user_prefs,
+                                        "total_cost": total_cost,
+                                        "budget": budget
+                                    }
+                                    st.session_state["latest_schedule"] = schedule_data
+                                    
+                                    # Nút lưu
+                                    if st.session_state.get("current_user"):
+                                        st.markdown("---")
+                                        if st.button("💾 Lưu lịch trình vào hồ sơ"):
+                                            user_id = st.session_state.get("user_id")
+                                            if user_id:
+                                                dest_names = ", ".join([r['name'] for r in route])
+                                                success = db_utils.add_schedule(
+                                                    user_id,
+                                                    dest_names,
+                                                    budget,
+                                                    start_time.strftime('%H:%M'),
+                                                    end_time.strftime('%H:%M'),
+                                                    schedule_data,
+                                                )
+                                                if success:
+                                                    st.success("✅ Đã lưu!")
+                                                else:
+                                                    st.error("❌ Lỗi khi lưu.")
+                                    else:
+                                        st.info("💡 Đăng nhập để lưu lịch trình.")
+                                        
+                            except Exception as e:
+                                st.error(f"❌ Lỗi khi tính toán: {str(e)}")
+                                st.error("Vui lòng kiểm tra lại dữ liệu hoặc liên hệ admin.")
+                    else:
+                        st.error("❌ Module thuật toán chưa được cài đặt. Vui lòng kiểm tra lại.")
 
 
 def render_tao_danh_sach_goi_y():
