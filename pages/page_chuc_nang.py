@@ -1,5 +1,6 @@
 """Trang Chức năng với 4 nút lựa chọn"""
 import streamlit as st
+import streamlit.components.v1 as components
 from datetime import time, datetime
 import db_utils
 from utils import time_to_minutes, minutes_to_str
@@ -421,7 +422,7 @@ def render_tao_danh_sach_goi_y():
                                         </html>
                                         """
                                         
-                                        st.components.v1.html(map_html, height=400)
+                                        components.html(map_html, height=400)
                                 
                                 with col_details:
                                     st.markdown("#### 📍 Chi tiết từng điểm")
@@ -672,7 +673,7 @@ def render_tim_duong_di():
                 """
                 
                 # Hiển thị map
-                st.components.v1.html(map_html, height=450)
+                components.html(map_html, height=450)
                 
                 # Link mở Google Maps
                 google_maps_url = f"https://www.google.com/maps/dir/?api=1&origin={lat1},{lon1}&destination={lat2},{lon2}&travelmode={'driving' if vehicle_type == 'driving' else 'bicycling'}"
