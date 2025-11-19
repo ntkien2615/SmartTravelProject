@@ -32,29 +32,29 @@ def page_chuc_nang():
     
     # Initialize selected function in session state
     if 'selected_function' not in st.session_state:
-        st.session_state['selected_function'] = "Tìm kiếm nhanh"
+        st.session_state['selected_function'] = "Tạo lịch trình"
     
     # ===== BỐ CỤC 4 NÚT CHỌN CHỨC NĂNG =====
     st.markdown("### Chọn chức năng")
     
-    # Hàng 1: Tìm kiếm nhanh (full width)
-    if st.button("🔍 Tìm kiếm nhanh", use_container_width=True, key="btn_tim_kiem_nhanh"):
-        st.session_state['selected_function'] = "Tìm kiếm nhanh"
+    # Hàng 1: Tạo lịch trình (full width)
+    if st.button("🗓️ Tạo lịch trình", use_container_width=True, key="btn_tim_kiem_nhanh"):
+        st.session_state['selected_function'] = "Tạo lịch trình"
         st.rerun()
     
     # Hàng 2: 3 chức năng con
     col_btn2, col_btn3, col_btn4 = st.columns(3)
     with col_btn2:
-        if st.button("🧩 Tạo danh sách gợi ý", use_container_width=True, key="btn_goi_y"):
-            st.session_state['selected_function'] = "Tạo danh sách gợi ý"
+        if st.button("📍 Gợi ý địa điểm", use_container_width=True, key="btn_goi_y"):
+            st.session_state['selected_function'] = "Gợi ý địa điểm"
             st.rerun()
     with col_btn3:
         if st.button("🚗 Tìm đường đi", use_container_width=True, key="btn_tim_duong"):
             st.session_state['selected_function'] = "Tìm đường đi"
             st.rerun()
     with col_btn4:
-        if st.button("📷 Nhận diện vị trí ảnh", use_container_width=True, key="btn_nhan_dien"):
-            st.session_state['selected_function'] = "Nhận diện vị trí ảnh"
+        if st.button("📷 Tìm vị trí ảnh", use_container_width=True, key="btn_nhan_dien"):
+            st.session_state['selected_function'] = "Tìm vị trí ảnh"
             st.rerun()
     
     st.markdown("---")
@@ -63,26 +63,26 @@ def page_chuc_nang():
     selected = st.session_state['selected_function']
     st.info(f"✨ Đang hiển thị: **{selected}**")
     
-    # 1. TÌM KIẾM NHANH
-    if selected == "Tìm kiếm nhanh":
+    # 1. TẠO LỊCH TRÌNH
+    if selected == "Tạo lịch trình":
         render_tim_kiem_nhanh()
     
-    # 2. TẠO DANH SÁCH GỢI Ý
-    elif selected == "Tạo danh sách gợi ý":
+    # 2. GỢI Ý ĐỊA ĐIỂM
+    elif selected == "Gợi ý địa điểm":
         render_tao_danh_sach_goi_y()
     
     # 3. TÌM ĐƯỜNG ĐI
     elif selected == "Tìm đường đi":
         render_tim_duong_di()
     
-    # 4. NHẬN DIỆN VỊ TRÍ ẢNH
-    elif selected == "Nhận diện vị trí ảnh":
+    # 4. TÌM VỊ TRÍ ẢNH
+    elif selected == "Tìm vị trí ảnh":
         render_nhan_dien_anh()
 
 
 def render_tim_kiem_nhanh():
-    """Render phần Tìm kiếm nhanh - Tạo lịch trình 1 ngày"""
-    st.markdown("### 🔍 Tìm kiếm nhanh")
+    """Render phần Tạo lịch trình - Tạo lịch trình 1 ngày"""
+    st.markdown("### 🗓️ Tạo lịch trình")
     st.markdown(
         "<p class='feature-muted'>Tạo lịch trình 1 ngày nhanh chóng với các điểm đến yêu thích.</p>",
         unsafe_allow_html=True,
@@ -204,8 +204,8 @@ def render_tim_kiem_nhanh():
 
 
 def render_tao_danh_sach_goi_y():
-    """Render phần Tạo danh sách gợi ý - TÍCH HỢP ALGO1"""
-    st.markdown("### 🧩 Tạo danh sách gợi ý")
+    """Render phần Gợi ý địa điểm - TÍCH HỢP ALGO1"""
+    st.markdown("### 📍 Gợi ý địa điểm")
     st.markdown(
         "<p class='feature-muted'>🎯 Nhập sở thích và yêu cầu, thuật toán AI sẽ tối ưu lịch trình cho bạn!</p>",
         unsafe_allow_html=True,
@@ -705,8 +705,8 @@ def render_tim_duong_di():
 
 
 def render_nhan_dien_anh():
-    """Render phần Nhận diện vị trí ảnh"""
-    st.markdown("### 📷 Nhận diện vị trí ảnh")
+    """Render phần Tìm vị trí ảnh"""
+    st.markdown("### 📷 Tìm vị trí ảnh")
     st.markdown(
         "<p class='feature-muted'>Tải lên ảnh địa điểm, hệ thống sẽ nhận diện loại địa điểm.</p>",
         unsafe_allow_html=True,
