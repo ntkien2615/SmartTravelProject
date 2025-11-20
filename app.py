@@ -26,11 +26,6 @@ def load_css(file_name):
 
 load_css("style.css")
 
-# Display WindyAI Logo
-col_logo, col_space = st.columns([0.2, 0.8])
-with col_logo:
-    st.image("./logo/Final_WindyAI_Logo_WindyAI_Logo_(RemoveBackgroud).png.png", width=150)
-
 # ======================
 # CUSTOM NAVIGATION FUNCTION
 # ======================
@@ -241,8 +236,133 @@ else:
     menu_options = ["Trang chủ", "Giới thiệu", "Chức năng", "Sign in / Sign up"]
     menu_icons = ["house", "info-circle", "check2-square", "person-circle"]
 
-# Render custom navigation
-render_custom_nav(menu_options, menu_icons, st.session_state['current_page'])
+# Add CSS for navigation with logo
+st.markdown("""
+<style>
+    /* Base Button Style */
+    .stButton > button {
+        width: 100%;
+        background-color: transparent;
+        color: #0F172A !important;
+        border: 2px solid #CBD5E1 !important;
+        padding: 0.6rem 1.2rem;
+        font-size: 0.95rem;
+        font-weight: 500;
+        border-radius: 0.75rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 50px;
+    }
+    
+    /* Hover State */
+    .stButton > button:hover {
+        background-color: #EFF6FF;
+        border: 2px solid #2563EB !important;
+        color: #1D4ED8 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    }
+    
+    /* Active/Selected Button */
+    .stButton > button[kind="primary"] {
+        background-color: transparent !important;
+        color: #2563EB !important;
+        border: none !important;
+        border-bottom: 3px solid #2563EB !important;
+        border-radius: 0 !important;
+        font-weight: 600 !important;
+    }
+    
+    .stButton > button[kind="primary"]:hover {
+        background-color: #EFF6FF !important;
+        color: #1D4ED8 !important;
+    }
+    
+    /* Fix button text - căn giữa theo chiều dọc */
+    .stButton > button p {
+        color: inherit !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        line-height: 1.5;
+    }
+    
+    .stButton > button[kind="primary"] p {
+        color: #2563EB !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# CSS cho navigation bar với viền
+st.markdown("""
+<style>
+    /* Căn giữa logo và nav buttons theo chiều dọc */
+    div[data-testid="column"] {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Viền cho navigation container - sử dụng :has() selector để target chính xác block chứa marker */
+    div[data-testid="stHorizontalBlock"]:has(div.nav-marker) {
+        border: 2px solid #2563EB;
+        border-radius: 12px;
+        padding: 0.8rem 1.2rem;
+        background-color: #FFFFFF;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+        margin-bottom: 1.5rem;
+        align-items: center; /* Căn giữa theo chiều dọc */
+    }
+    
+    /* Căn giữa logo trong cột của nó */
+    div[data-testid="stHorizontalBlock"]:has(div.nav-marker) div[data-testid="column"]:first-child {
+        justify-content: center !important;
+        display: flex !important;
+    }
+    
+    div[data-testid="stHorizontalBlock"]:has(div.nav-marker) div[data-testid="column"]:first-child img {
+        margin: 0 auto !important;
+        display: block !important;
+    }
+    
+    /* Ẩn marker */
+    div.nav-marker {
+        display: none;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+nav_cols = st.columns([0.18] + [0.82 / len(menu_options)] * len(menu_options))
+
+# Logo ở cột đầu tiên
+with nav_cols[0]:
+    # Marker để CSS target đúng block này
+    st.markdown('<div class="nav-marker"></div>', unsafe_allow_html=True)
+    st.image("./logo/Final_WindyAI_Logo_WindyAI_Logo_(RemoveBackgroud).png.png", width=100)
+
+# Navigation buttons ở các cột còn lại
+icon_map = {
+    "house": "🏠",
+    "info-circle": "ℹ️",
+    "check2-square": "✅",
+    "person-circle": "👤",
+    "person-badge": "👤"
+}
+
+for i, (option, icon) in enumerate(zip(menu_options, menu_icons)):
+    with nav_cols[i + 1]:
+        is_active = (option == st.session_state['current_page'])
+        button_type = "primary" if is_active else "secondary"
+        icon_emoji = icon_map.get(icon, "📌")
+        
+        if st.button(f"{icon_emoji} {option}", 
+                     key=f"nav_{option}_{i}", 
+                     type=button_type,
+                     use_container_width=True):
+            st.session_state['current_page'] = option
+            st.rerun()
 
 # Get current page
 page = st.session_state['current_page']
