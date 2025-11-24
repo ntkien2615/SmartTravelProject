@@ -33,30 +33,9 @@ def init_database():
     """
     Initialize database tables.
     Since we are using Supabase API, tables should be created via SQL Editor.
-    This function will print the SQL commands needed.
     """
-    print("⚠️ Using Supabase API. Please run the following SQL in Supabase SQL Editor to create tables:")
-    print("""
-    -- Create users table
-    CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        email TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-    );
-
-    -- Create schedules table
-    CREATE TABLE IF NOT EXISTS schedules (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        destination TEXT NOT NULL,
-        budget FLOAT NOT NULL,
-        start_time TEXT NOT NULL,
-        end_time TEXT NOT NULL,
-        timeline_json TEXT NOT NULL,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-    );
-    """)
+    # Suppress noisy logs
+    pass
 
 def add_user(email, password):
     """Add a new user with hashed password"""
@@ -67,7 +46,7 @@ def add_user(email, password):
         # Check if user exists
         existing = supabase.table("users").select("id").eq("email", email).execute()
         if existing.data:
-            return False, None
+            return False, "Email already registered"
             
         # Hash password
         hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -78,14 +57,18 @@ def add_user(email, password):
             "password": hashed,
             "created_at": datetime.utcnow().isoformat()
         }
-        response = supabase.table("users").insert(data).execute()
+        # Use returning='minimal' to avoid 556 error if permissions are tricky
+        supabase.table("users").insert(data, returning='minimal').execute()
         
-        if response.data:
-            return True, response.data[0]['id']
-        return False, None
+        # Fetch the created user to get ID
+        created_user = supabase.table("users").select("id").eq("email", email).execute()
+        if created_user.data:
+            return True, created_user.data[0]['id']
+            
+        return False, "User created but ID not found"
     except Exception as e:
         print(f"Error adding user: {e}")
-        return False, None
+        return False, str(e)
 
 def get_user(email):
     """Get user by email"""
@@ -136,9 +119,15 @@ def add_schedule(user_id, destination, budget, start_time, end_time, timeline):
             "created_at": datetime.utcnow().isoformat()
         }
         
-        response = supabase.table("schedules").insert(data).execute()
-        if response.data:
-            return response.data[0]['id']
+        # Use returning='minimal' to avoid 556 error
+        supabase.table("schedules").insert(data, returning='minimal').execute()
+        
+        # Fetch the created schedule ID (assuming latest for this user)
+        # This is a bit risky if multiple inserts happen at once, but acceptable for this scale
+        created = supabase.table("schedules").select("id").eq("user_id", user_id).order("created_at", desc=True).limit(1).execute()
+        
+        if created.data:
+            return created.data[0]['id']
         return None
     except Exception as e:
         print(f"Error adding schedule: {e}")

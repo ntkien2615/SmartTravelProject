@@ -52,6 +52,10 @@ def page_ho_so():
 
         st.markdown("---")
         if st.button("Đăng xuất (Log out)"):
+            # Delete cookie
+            if 'cookie_manager' in st.session_state:
+                st.session_state.cookie_manager.delete("user_email", key="delete_logout_cookie")
+                
             st.session_state["current_user"] = None
             st.session_state["user_id"] = None
             st.rerun()

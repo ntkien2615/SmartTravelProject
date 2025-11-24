@@ -30,6 +30,11 @@ def page_sign_in_up():
                     st.session_state["current_user"] = email_in
                     st.session_state["user_id"] = user_id
                     st.session_state["current_page"] = "Trang chủ"  # Chuyển về trang chủ
+                    
+                    # Set cookie (expires in 7 days)
+                    if 'cookie_manager' in st.session_state:
+                        st.session_state.cookie_manager.set("user_email", email_in, key="set_login_cookie")
+                    
                     st.success(f"Đăng nhập thành công! Xin chào **{email_in}** 🎉")
                     st.rerun()
                 else:
@@ -51,14 +56,24 @@ def page_sign_in_up():
             elif password_up != confirm_up:
                 st.error("Password nhập lại không khớp.")
             else:
-                # Add user using SQLite
-                success, user_id = db_utils.add_user(email_up, password_up)
+                # Add user using Supabase
+                success, result = db_utils.add_user(email_up, password_up)
                 if success:
+                    user_id = result
                     # Tự động đăng nhập sau khi đăng ký thành công
                     st.session_state["current_user"] = email_up
                     st.session_state["user_id"] = user_id
                     st.session_state["current_page"] = "Trang chủ"  # Chuyển về trang chủ
+                    
+                    # Set cookie
+                    if 'cookie_manager' in st.session_state:
+                        st.session_state.cookie_manager.set("user_email", email_up, key="set_signup_cookie")
+                        
                     st.success(f"Đăng ký thành công! Xin chào **{email_up}** 🎉")
                     st.rerun()
                 else:
-                    st.error("Email này đã được đăng ký.")
+                    # result contains error message if success is False
+                    if result and "already registered" in str(result):
+                         st.error("Email này đã được đăng ký.")
+                    else:
+                         st.error(f"Lỗi đăng ký: {result if result else 'Email đã tồn tại hoặc lỗi hệ thống'}")

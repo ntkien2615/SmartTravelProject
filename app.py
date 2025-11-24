@@ -5,6 +5,7 @@ import json
 import os
 import db_utils  # SQLite database utilities
 import utils  # Utility functions
+import extra_streamlit_components as stx
 
 # Import page modules
 from pages.page_trang_chu import page_trang_chu
@@ -19,6 +20,43 @@ st.set_page_config(
     layout="wide",  
     initial_sidebar_state="collapsed"
 )
+
+# ======================
+# COOKIE MANAGER SETUP
+# ======================
+# Initialize Cookie Manager
+if 'cookie_manager' not in st.session_state:
+    st.session_state.cookie_manager = stx.CookieManager()
+
+cookie_manager = st.session_state.cookie_manager
+
+# ======================
+# DATABASE INITIALIZATION
+# ======================
+# Initialize database on first run
+db_utils.init_database()
+
+# Initialize session state
+if "current_user" not in st.session_state:
+    st.session_state["current_user"] = None
+if "user_id" not in st.session_state:
+    st.session_state["user_id"] = None
+if "latest_schedule" not in st.session_state:
+    st.session_state["latest_schedule"] = None
+
+# Check for login cookie if not logged in
+if not st.session_state.get("current_user"):
+    # Get all cookies
+    cookies = cookie_manager.get_all()
+    user_email_cookie = cookies.get("user_email")
+    
+    if user_email_cookie:
+        # Verify user exists in DB
+        user = db_utils.get_user(user_email_cookie)
+        if user and isinstance(user, dict):
+            st.session_state["current_user"] = user.get("email")
+            st.session_state["user_id"] = user.get("id")
+            # st.toast(f"👋 Chào mừng trở lại, {user['email']}!", icon="🎉")
 
 def load_css(file_name):
     """Tải file CSS để áp dụng vào ứng dụng."""
@@ -169,15 +207,10 @@ MENU_STYLES = {
 # DATABASE INITIALIZATION (SQLite)
 # ======================
 # Initialize database on first run
-db_utils.init_database()
+# db_utils.init_database() -> Moved up
 
-# Initialize session state
-if "current_user" not in st.session_state:
-    st.session_state["current_user"] = None
-if "user_id" not in st.session_state:
-    st.session_state["user_id"] = None
-if "latest_schedule" not in st.session_state:
-    st.session_state["latest_schedule"] = None
+# Initialize session state -> Moved up
+
 
 # Legacy JSON database functions (kept for compatibility, can be removed later)
 DB_FILE = "database.json"
