@@ -4,24 +4,62 @@ import base64
 import os
 
 @st.cache_data
-def get_video_base64(filename):
-    """Đọc file video và chuyển sang base64 (có cache)"""
+def get_media_base64(filename):
+    """Đọc file media (video/image) và chuyển sang base64 (có cache)"""
     current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    video_path = os.path.join(current_dir, "assets", "background", filename)
+    file_path = os.path.join(current_dir, "assets", "background", filename)
     
-    if not os.path.exists(video_path):
-        return None
+    if not os.path.exists(file_path):
+        return None, None
         
     try:
-        with open(video_path, "rb") as f:
+        with open(file_path, "rb") as f:
             data = f.read()
-            return base64.b64encode(data).decode("utf-8")
+            b64 = base64.b64encode(data).decode("utf-8")
+            
+            ext = filename.split('.')[-1].lower()
+            if ext in ['mp4', 'mov']:
+                return b64, 'video/mp4'
+            elif ext in ['png', 'jpg', 'jpeg']:
+                return b64, f'image/{ext}'
+            elif ext == 'gif':
+                return b64, 'image/gif'
+            else:
+                return None, None
     except Exception as e:
-        st.error(f"Lỗi khi đọc video {filename}: {e}")
-        return None
+        st.error(f"Lỗi khi đọc file {filename}: {e}")
+        return None, None
+
+def render_hero_section(filename, content_html, height="85vh", overlay_opacity=0.5):
+    b64, mime = get_media_base64(filename)
+    if not b64 or not mime:
+        st.error(f"Không tìm thấy file {filename}")
+        return
+
+    media_html = ""
+    if mime.startswith("video"):
+        media_html = f"""
+            <video class="video-bg" autoplay muted loop playsinline>
+                <source src="data:{mime};base64,{b64}" type="{mime}">
+            </video>
+        """
+    else:
+        media_html = f"""
+            <img class="video-bg" src="data:{mime};base64,{b64}" alt="Background">
+        """
+
+    st.markdown(f"""
+    <div class="video-section" style="min-height: {height};">
+        {media_html}
+        <div class="overlay-dark" style="background: rgba(0,0,0,{overlay_opacity});"></div>
+        <div class="content-box">
+            {content_html}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 def page_trang_chu():
-    """Hiển thị nội dung trang chủ với video background."""
+    """Hiển thị nội dung trang chủ với video/image background."""
     
     # CSS Custom cho trang chủ
     st.markdown("""
@@ -150,101 +188,59 @@ def page_trang_chu():
     """, unsafe_allow_html=True)
 
     # --- SECTION 1: HERO (City Night) ---
-    v1 = get_video_base64("section-1.mp4")
-    if v1:
-        st.markdown(f"""
-        <div class="video-section">
-            <video class="video-bg" autoplay muted loop playsinline>
-                <source src="data:video/mp4;base64,{v1}" type="video/mp4">
-            </video>
-            <div class="overlay-dark"></div>
-            <div class="content-box">
-                <div class="badge-pill">✨ WindyAI - Smart Travel Website</div>
-                <h1 class="home-title">Lên kế hoạch du lịch<br>thông minh với AI</h1>
-                <p class="home-subtitle">
-                    Chỉ cần nhập điểm đến, ngân sách và thời gian rảnh.<br>
-                    Hệ thống sẽ giúp bạn tạo lịch trình <b>thông minh – nhanh chóng – tối ưu</b>.
-                </p>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.error("Không tìm thấy video section-1.mp4")
+    render_hero_section("section-1.png", """
+        <div class="badge-pill">✨ WindyAI - Smart Travel Website</div>
+        <h1 class="home-title">Lên kế hoạch du lịch<br>thông minh với AI</h1>
+        <p class="home-subtitle">
+            Chỉ cần nhập điểm đến, ngân sách và thời gian rảnh.<br>
+            Hệ thống sẽ giúp bạn tạo lịch trình <b>thông minh – nhanh chóng – tối ưu</b>.
+        </p>
+    """, overlay_opacity=0.5)
 
     # --- SECTION 2: HIGHLIGHTS (Global Connection) ---
-    v2 = get_video_base64("section-2.MP4")
-    if v2:
-        st.markdown(f"""
-        <div class="video-section">
-            <video class="video-bg" autoplay muted loop playsinline>
-                <source src="data:video/mp4;base64,{v2}" type="video/mp4">
-            </video>
-            <div class="overlay-dark" style="background: rgba(0,0,0,0.6);"></div>
-            <div class="content-box">
-                <h2 style="font-size: 2.5rem; margin-bottom: 2rem; font-weight: 700;">Điểm nổi bật</h2>
-                <div class="flex-row">
-                    <div class="feature-box">
-                        <div style="font-size: 3rem; margin-bottom: 1rem;">⏱️</div>
-                        <h3>Tối ưu thời gian</h3>
-                        <p style="font-size: 0.9rem; opacity: 0.9;">Sắp xếp lộ trình khoa học, không lo kẹt xe hay đi đường vòng.</p>
-                    </div>
-                    <div class="feature-box">
-                        <div style="font-size: 3rem; margin-bottom: 1rem;">💸</div>
-                        <h3>Cân đối chi phí</h3>
-                        <p style="font-size: 0.9rem; opacity: 0.9;">Gợi ý điểm đến phù hợp với túi tiền của bạn.</p>
-                    </div>
-                    <div class="feature-box">
-                        <div style="font-size: 3rem; margin-bottom: 1rem;">🧭</div>
-                        <h3>Dễ sử dụng</h3>
-                        <p style="font-size: 0.9rem; opacity: 0.9;">Giao diện thân thiện, thao tác đơn giản cho mọi lứa tuổi.</p>
-                    </div>
-                </div>
+    render_hero_section("section-2.png", """
+        <h2 style="font-size: 2.5rem; margin-bottom: 2rem; font-weight: 700;">Điểm nổi bật</h2>
+        <div class="flex-row">
+            <div class="feature-box">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">⏱️</div>
+                <h3>Tối ưu thời gian</h3>
+                <p style="font-size: 0.9rem; opacity: 0.9;">Sắp xếp lộ trình khoa học, không lo kẹt xe hay đi đường vòng.</p>
+            </div>
+            <div class="feature-box">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">💸</div>
+                <h3>Cân đối chi phí</h3>
+                <p style="font-size: 0.9rem; opacity: 0.9;">Gợi ý điểm đến phù hợp với túi tiền của bạn.</p>
+            </div>
+            <div class="feature-box">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🧭</div>
+                <h3>Dễ sử dụng</h3>
+                <p style="font-size: 0.9rem; opacity: 0.9;">Giao diện thân thiện, thao tác đơn giản cho mọi lứa tuổi.</p>
             </div>
         </div>
-        """, unsafe_allow_html=True)
+    """, overlay_opacity=0.6)
 
     # --- SECTION 3: STATS (Coding/Encryption) ---
-    v3 = get_video_base64("section-3.mp4")
-    if v3:
-        st.markdown(f"""
-        <div class="video-section">
-            <video class="video-bg" autoplay muted loop playsinline>
-                <source src="data:video/mp4;base64,{v3}" type="video/mp4">
-            </video>
-            <div class="overlay-dark" style="background: rgba(15, 23, 42, 0.7);"></div>
-            <div class="content-box">
-                <h2 style="font-size: 2.5rem; margin-bottom: 2rem; font-weight: 700;">Hiệu suất vượt trội</h2>
-                <div class="flex-row">
-                    <div class="feature-box">
-                        <div class="stat-number">~ 2 phút</div>
-                        <div style="font-weight: 600;">Thời gian chuẩn bị</div>
-                    </div>
-                    <div class="feature-box">
-                        <div class="stat-number">3 – 6</div>
-                        <div style="font-weight: 600;">Điểm đến / ngày</div>
-                    </div>
-                    <div class="feature-box">
-                        <div class="stat-number">100%</div>
-                        <div style="font-weight: 600;">Tự động hóa</div>
-                    </div>
-                </div>
+    render_hero_section("section-3.mp4", """
+        <h2 style="font-size: 2.5rem; margin-bottom: 2rem; font-weight: 700;">Hiệu suất vượt trội</h2>
+        <div class="flex-row">
+            <div class="feature-box">
+                <div class="stat-number">~ 2 phút</div>
+                <div style="font-weight: 600;">Thời gian chuẩn bị</div>
+            </div>
+            <div class="feature-box">
+                <div class="stat-number">3 – 6</div>
+                <div style="font-weight: 600;">Điểm đến / ngày</div>
+            </div>
+            <div class="feature-box">
+                <div class="stat-number">100%</div>
+                <div style="font-weight: 600;">Tự động hóa</div>
             </div>
         </div>
-        """, unsafe_allow_html=True)
+    """, overlay_opacity=0.7)
 
     # --- SECTION 4: FOOTER (Clouds) ---
-    v4 = get_video_base64("section-4.MP4")
-    if v4:
-        st.markdown(f"""
-        <div class="video-section" style="min-height: 60vh;">
-            <video class="video-bg" autoplay muted loop playsinline>
-                <source src="data:video/mp4;base64,{v4}" type="video/mp4">
-            </video>
-            <div class="overlay-dark" style="background: rgba(0,0,0,0.3);"></div>
-            <div class="content-box">
-                <h2 style="font-size: 2.5rem; margin-bottom: 1rem; font-weight: 700;">Trải nghiệm ngay hôm nay</h2>
-                <p style="font-size: 1.2rem; margin-bottom: 2rem;">Khám phá thế giới theo cách riêng của bạn.</p>
-                <div style="font-size: 0.9rem; opacity: 0.8;">© 2025 WindyAI - Smart Travel Planner</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+    render_hero_section("section-4.MP4", """
+        <h2 style="font-size: 2.5rem; margin-bottom: 1rem; font-weight: 700;">Trải nghiệm ngay hôm nay</h2>
+        <p style="font-size: 1.2rem; margin-bottom: 2rem;">Khám phá thế giới theo cách riêng của bạn.</p>
+        <div style="font-size: 0.9rem; opacity: 0.8;">© 2025 WindyAI - Smart Travel Planner</div>
+    """, height="60vh", overlay_opacity=0.3)
