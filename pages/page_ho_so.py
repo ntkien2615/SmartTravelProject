@@ -3,6 +3,49 @@ import streamlit as st
 import services.db as db_utils
 import time
 
+@st.dialog("Chi tiết lịch trình")
+def show_schedule_details(schedule, user_id):
+    st.subheader(f"📍 {schedule['destination']}")
+    st.caption(f"📅 {schedule['start_time']} – {schedule['end_time']}")
+    st.write(f"💰 **Ngân sách:** {schedule['budget']:,} VND")
+    
+    st.markdown("---")
+    st.markdown("#### 📝 Timeline chi tiết")
+    
+    for item in schedule["timeline"]:
+        # Get extended info with defaults
+        place = item.get('place', 'Unknown')
+        arrive = item.get('arrive', '')
+        depart = item.get('depart', '')
+        mode = item.get('mode', '')
+        travel_cost = item.get('travel_cost', 0)
+        entry_fee = item.get('entry_fee', 0)
+        
+        # Display rich info
+        with st.container():
+            st.markdown(f"**📍 {place}**")
+            st.caption(f"⏰ {arrive} – {depart}")
+            
+            details = []
+            if mode:
+                details.append(f"🚗 {mode.title()}")
+            if travel_cost > 0:
+                details.append(f"💵 Đi lại: {travel_cost:,}đ")
+            if entry_fee > 0:
+                details.append(f"🎫 Vé: {entry_fee:,}đ")
+                
+            if details:
+                st.markdown(f"<span style='color:gray; font-size:0.9em'>{' | '.join(details)}</span>", unsafe_allow_html=True)
+            st.divider()
+
+    if st.button("🗑️ Xóa lịch trình này", key=f"delete_modal_{schedule['id']}", type="primary"):
+        if db_utils.delete_schedule(schedule['id'], user_id):
+            st.success("Đã xóa lịch trình.")
+            time.sleep(0.5)
+            st.rerun()
+        else:
+            st.error("Lỗi khi xóa lịch trình.")
+
 
 def page_ho_so():
     """Hiển thị nội dung trang Hồ sơ."""
@@ -34,45 +77,14 @@ def page_ho_so():
                 st.write(f"Bạn có **{len(schedules)}** lịch trình đã lưu:")
 
                 for schedule in schedules:
-                    title = f"Lịch trình: {schedule['destination']} ({schedule['start_time']} – {schedule['end_time']})"
-
-                    with st.expander("📅 " + title):
-                        st.write(f"**Điểm đến:** {schedule['destination']}")
-                        st.write(f"**Ngân sách:** {schedule['budget']:,} VND")
-                        st.markdown("---")
-                        st.write("**Timeline chi tiết:**")
-                        for item in schedule["timeline"]:
-                            # Get extended info with defaults for backward compatibility
-                            place = item.get('place', 'Unknown')
-                            arrive = item.get('arrive', '')
-                            depart = item.get('depart', '')
-                            mode = item.get('mode', '')
-                            travel_cost = item.get('travel_cost', 0)
-                            entry_fee = item.get('entry_fee', 0)
-                            
-                            # Display rich info
-                            st.markdown(f"##### 📍 {place}")
-                            st.write(f"⏰ **Thời gian:** {arrive} – {depart}")
-                            
-                            details = []
-                            if mode:
-                                details.append(f"🚗 {mode.title()}")
-                            if travel_cost > 0:
-                                details.append(f"💵 Đi lại: {travel_cost:,}đ")
-                            if entry_fee > 0:
-                                details.append(f"🎫 Vé: {entry_fee:,}đ")
-                                
-                            if details:
-                                st.caption(" | ".join(details))
-                            
-                            st.divider()
-
-                        if st.button("🗑️ Xóa lịch trình này", key=f"delete_{schedule['id']}"):
-                            if db_utils.delete_schedule(schedule['id'], user_id):
-                                st.success("Đã xóa lịch trình.")
-                                st.rerun()
-                            else:
-                                st.error("Lỗi khi xóa lịch trình.")
+                    with st.container(border=True):
+                        col_info, col_btn = st.columns([3, 1])
+                        with col_info:
+                            st.markdown(f"##### 🗺️ {schedule['destination']}")
+                            st.caption(f"📅 {schedule['start_time']} – {schedule['end_time']} | 💰 {schedule['budget']:,} VND")
+                        with col_btn:
+                            if st.button("👁️ Xem chi tiết", key=f"btn_view_{schedule['id']}", use_container_width=True):
+                                show_schedule_details(schedule, user_id)
 
         st.markdown("---")
         if st.button("Đăng xuất (Log out)"):

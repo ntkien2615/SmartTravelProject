@@ -148,9 +148,12 @@ def render_tao_danh_sach_goi_y():
         )
         submitted = st.form_submit_button("🎯 Tạo lịch trình tối ưu", width='stretch')
 
-    if not submitted:
-        st.caption("⏳ Điền thông tin và bấm nút để nhận gợi ý tối ưu.")
-    else:
+    # 1. Handle Submission (Calculation)
+    if submitted:
+        # Reset previous result
+        if 'latest_schedule' in st.session_state:
+            del st.session_state['latest_schedule']
+            
         # Thu thập sở thích
         user_prefs = []
         if pref_history: user_prefs.extend(["history", "landmark"])
@@ -211,209 +214,223 @@ def render_tao_danh_sach_goi_y():
                                 st.error("❌ Không tìm thấy lịch trình phù hợp.")
                                 st.info("💡 Gợi ý: Tăng ngân sách, mở rộng thời gian hoặc chọn thêm sở thích.")
                             else:
-                                # Display results
-                                st.success(f"✅ Tìm thấy lộ trình với **{len(route)}** điểm đến!")
-                                
-                                total_cost = sum(r['travel_cost'] + r['entry_fee'] for r in route)
-                                
-                                # Layout: Lịch trình | Chi tiết
-                                # Layout: Lịch trình gợi ý | Chi tiết từng điểm
-                                col_summary, col_details = st.columns([1, 1], gap="large")
-                                
-                                with col_summary:
-                                    st.markdown("#### 🗺️ Lịch trình gợi ý")
-                                    
-                                    # Styled info boxes
-                                    st.markdown("""
-                                    <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                                                padding: 1.2rem; border-radius: 12px; color: white; margin-bottom: 1rem;'>
-                                        <div style='font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.3rem;'>📍 Xuất phát</div>
-                                        <div style='font-size: 1.1rem; font-weight: 600;'>{}</div>
-                                    </div>
-                                    """.format(start_location), unsafe_allow_html=True)
-                                    
-                                    col_time, col_budget = st.columns(2)
-                                    with col_time:
-                                        st.markdown("""
-                                        <div style='background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); 
-                                                    padding: 1rem; border-radius: 12px; color: white; text-align: center;'>
-                                            <div style='font-size: 0.85rem; opacity: 0.9;'>⏰ Thời gian</div>
-                                            <div style='font-size: 1rem; font-weight: 600; margin-top: 0.3rem;'>{} – {}</div>
-                                        </div>
-                                        """.format(start_time.strftime('%H:%M'), end_time.strftime('%H:%M')), unsafe_allow_html=True)
-                                    with col_budget:
-                                        st.markdown("""
-                                        <div style='background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); 
-                                                    padding: 1rem; border-radius: 12px; color: white; text-align: center;'>
-                                            <div style='font-size: 0.85rem; opacity: 0.9;'>💰 Chi phí dự kiến</div>
-                                            <div style='font-size: 1rem; font-weight: 600; margin-top: 0.3rem;'>{:,} VND</div>
-                                        </div>
-                                        """.format(int(round(total_cost))), unsafe_allow_html=True)
-                                    
-                                    st.write(f"**💰 Tổng chi phí:** {int(round(total_cost)):,} / {budget:,.0f} VND")
-                                    st.write(f"**🎯 Sở thích:** {', '.join(set(user_prefs))}")
-                                    
-                                    # Bản đồ tổng quan
-                                    st.markdown("---")
-                                    st.markdown("##### 🗺️ Bản đồ tổng quan")
-                                    
-                                    # Tạo Leaflet map với tất cả điểm đến
-                                    all_lats = [stop.get('lat', 0) for stop in route if stop.get('lat', 0) != 0]
-                                    all_lons = [stop.get('lon', 0) for stop in route if stop.get('lon', 0) != 0]
-                                    
-                                    if all_lats and all_lons:
-                                        center_lat = sum(all_lats) / len(all_lats)
-                                        center_lon = sum(all_lons) / len(all_lons)
-                                        
-                                        # Tạo danh sách markers cho map
-                                        markers_js = ""
-                                        for idx, stop in enumerate(route, 1):
-                                            lat = stop.get('lat', 0)
-                                            lon = stop.get('lon', 0)
-                                            if lat != 0 and lon != 0:
-                                                name = stop['name'].replace("'", "\\'").replace('"', '\\"')
-                                                arrive = stop['arrive_time'].strftime('%H:%M')
-                                                depart = stop['depart_time'].strftime('%H:%M')
-                                                markers_js += f"""
-                                        L.marker([{lat}, {lon}], {{
-                                            icon: L.divIcon({{
-                                                html: '<div style="background: #2563eb; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">{idx}</div>',
-                                                className: '',
-                                                iconSize: [28, 28],
-                                                iconAnchor: [14, 14]
-                                            }})
-                                        }}).bindPopup('<b>{idx}. {name}</b><br>⏰ {arrive} - {depart}').addTo(map);
-                                        """
-                                        
-                                        map_html = f"""
-                                        <!DOCTYPE html>
-                                        <html>
-                                        <head>
-                                            <meta charset="utf-8" />
-                                            <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-                                            <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-                                            <style>
-                                                body {{ margin: 0; padding: 0; }}
-                                                #map {{ width: 100%; height: 400px; }}
-                                            </style>
-                                        </head>
-                                        <body>
-                                            <div id="map"></div>
-                                            <script>
-                                                var map = L.map('map').setView([{center_lat}, {center_lon}], 12);
-                                                L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png', {{
-                                                    attribution: '&copy; OpenStreetMap',
-                                                    maxZoom: 19
-                                                }}).addTo(map);
-                                                {markers_js}
-                                                
-                                                // Vẽ đường nối các điểm
-                                                var latlngs = [{', '.join([f'[{stop.get("lat", 0)}, {stop.get("lon", 0)}]' for stop in route if stop.get('lat', 0) != 0])}];
-                                                L.polyline(latlngs, {{
-                                                    color: '#f5576c',
-                                                    weight: 3,
-                                                    opacity: 0.7,
-                                                    dashArray: '10, 5'
-                                                }}).addTo(map);
-                                                
-                                                // Fit bounds
-                                                if (latlngs.length > 0) {{
-                                                    map.fitBounds(latlngs, {{padding: [30, 30]}});
-                                                }}
-                                            </script>
-                                        </body>
-                                        </html>
-                                        """
-                                        
-                                        components.html(map_html, height=400)
-                                
-                                with col_details:
-                                    st.markdown("#### 📍 Chi tiết từng điểm")
-                                    
-                                    # Display each stop with address
-                                    for i, stop in enumerate(route, 1):
-                                        mode_icon = {"walking": "🚶", "motorbike": "🏍️", "taxi": "🚕"}.get(stop['mode'], "🚗")
-                                        lat = stop.get('lat', 0)
-                                        lon = stop.get('lon', 0)
-                                        
-                                        with st.expander(
-                                            f"{i}. {stop['name']} ({stop['arrive_time'].strftime('%H:%M')} - {stop['depart_time'].strftime('%H:%M')})",
-                                            expanded=(i==1)
-                                        ):
-                                            # Địa chỉ POI với link Google Maps
-                                            st.markdown(f"""
-                                            <div style='background: linear-gradient(120deg, #ffecd2 0%, #fcb69f 100%); 
-                                                        padding: 0.8rem; border-radius: 8px; margin-bottom: 0.8rem;'>
-                                                <div style='color: #1e293b; font-weight: 600; margin-bottom: 0.3rem;'>📍 {stop['name']}</div>
-                                                <div style='color: #475569; font-size: 0.85rem;'>Tọa độ: {lat:.4f}, {lon:.4f}</div>
-                                                <a href='https://www.google.com/maps/search/?api=1&query={lat},{lon}' 
-                                                   target='_blank' 
-                                                   style='color: #2563eb; font-size: 0.85rem; text-decoration: none; font-weight: 500;'>
-                                                   🗺️ Xem trên Google Maps →
-                                                </a>
-                                            </div>
-                                            """, unsafe_allow_html=True)
-                                            
-                                            st.write(f"**🚗 Di chuyển:** {mode_icon} {stop['mode'].title()}")
-                                            st.write(f"**⏰ Đến:** {stop['arrive_time'].strftime('%H:%M')}")
-                                            st.write(f"**⏰ Rời:** {stop['depart_time'].strftime('%H:%M')}")
-                                            st.write(f"**💵 Chi phí di chuyển:** {stop['travel_cost']:,.0f} VND")
-                                            st.write(f"**🎫 Vé vào cửa:** {stop['entry_fee']:,.0f} VND")
-                                
-                                # Save to session
-                                schedule_data = {
-                                    "route": route,
-                                    "preferences": user_prefs,
-                                    "total_cost": total_cost,
-                                    "budget": budget
+                                # Save to session state
+                                st.session_state['latest_schedule'] = {
+                                    'route': route,
+                                    'preferences': user_prefs,
+                                    'budget': budget,
+                                    'total_cost': sum(r['travel_cost'] + r['entry_fee'] for r in route),
+                                    'start_location': start_location,
+                                    'start_time_obj': start_time,
+                                    'end_time_obj': end_time
                                 }
-                                st.session_state["latest_schedule"] = schedule_data
-                                
-                                # Save button
-                                if st.session_state.get("current_user") is not None:
-                                    st.markdown("---")
-                                    if st.button("💾 Lưu lịch trình vào hồ sơ", width='stretch'):
-                                        user_id = st.session_state.get("user_id")
-                                        if not user_id:
-                                            st.error("⚠️ Lỗi phiên đăng nhập: Không tìm thấy ID người dùng. Vui lòng đăng xuất và đăng nhập lại.")
-                                        elif user_id:
-                                            # Prepare timeline for storage matching page_ho_so.py expectations
-                                            timeline_to_save = []
-                                            for stop in route:
-                                                timeline_to_save.append({
-                                                    "place": stop['name'],
-                                                    "arrive": stop['arrive_time'].strftime('%H:%M'),
-                                                    "depart": stop['depart_time'].strftime('%H:%M'),
-                                                    "mode": stop.get('mode', 'walking'),
-                                                    "travel_cost": stop.get('travel_cost', 0),
-                                                    "entry_fee": stop.get('entry_fee', 0)
-                                                })
-                                            
-                                            # Create a summary destination string
-                                            dest_names = f"{len(route)} địa điểm tại TP.HCM"
-                                            
-                                            success, msg = db_utils.add_schedule(
-                                                user_id,
-                                                dest_names,
-                                                budget,
-                                                start_time.strftime('%H:%M'),
-                                                end_time.strftime('%H:%M'),
-                                                timeline_to_save,
-                                            )
-                                            if success:
-                                                st.success("✅ Đã lưu thành công!")
-                                            else:
-                                                st.error(f"❌ Lỗi khi lưu: {msg}")
-                                                if "invalid input syntax for type uuid" in str(msg):
-                                                    st.warning("⚠️ Phiên đăng nhập cũ không tương thích. Vui lòng Đăng xuất và Đăng nhập lại.")
-                                else:
-                                    st.info("💡 Đăng nhập để lưu lịch trình vào hồ sơ.")
-                                    
                         except Exception as e:
-                            st.error(f"❌ Lỗi: {str(e)}")
+                            st.error(f"❌ Lỗi thuật toán: {str(e)}")
                             st.info("Vui lòng kiểm tra lại dữ liệu hoặc liên hệ admin.")
                 else:
                     st.error("❌ Module thuật toán chưa được cài đặt.")
+
+    # 2. Display Logic (if data exists)
+    if st.session_state.get('latest_schedule'):
+        data = st.session_state['latest_schedule']
+        route = data['route']
+        user_prefs = data['preferences']
+        budget = data['budget']
+        total_cost = data.get('total_cost', 0)
+        start_location = data.get('start_location', "Quận 1, TP.HCM")
+        start_time = data.get('start_time_obj', time(9,0))
+        end_time = data.get('end_time_obj', time(21,0))
+        
+        # Display results
+        st.success(f"✅ Tìm thấy lộ trình với **{len(route)}** điểm đến!")
+        
+        # Layout: Lịch trình | Chi tiết
+        col_summary, col_details = st.columns([1, 1], gap="large")
+        
+        with col_summary:
+            st.markdown("#### 🗺️ Lịch trình gợi ý")
+            
+            # Styled info boxes
+            st.markdown("""
+            <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                        padding: 1.2rem; border-radius: 12px; color: white; margin-bottom: 1rem;'>
+                <div style='font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.3rem;'>📍 Xuất phát</div>
+                <div style='font-size: 1.1rem; font-weight: 600;'>{}</div>
+            </div>
+            """.format(start_location), unsafe_allow_html=True)
+            
+            col_time, col_budget = st.columns(2)
+            with col_time:
+                st.markdown("""
+                <div style='background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); 
+                            padding: 1rem; border-radius: 12px; color: white; text-align: center;'>
+                    <div style='font-size: 0.85rem; opacity: 0.9;'>⏰ Thời gian</div>
+                    <div style='font-size: 1rem; font-weight: 600; margin-top: 0.3rem;'>{} – {}</div>
+                </div>
+                """.format(start_time.strftime('%H:%M'), end_time.strftime('%H:%M')), unsafe_allow_html=True)
+            with col_budget:
+                st.markdown("""
+                <div style='background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); 
+                            padding: 1rem; border-radius: 12px; color: white; text-align: center;'>
+                    <div style='font-size: 0.85rem; opacity: 0.9;'>💰 Chi phí dự kiến</div>
+                    <div style='font-size: 1rem; font-weight: 600; margin-top: 0.3rem;'>{:,} VND</div>
+                </div>
+                """.format(int(round(total_cost))), unsafe_allow_html=True)
+            
+            st.write(f"**💰 Tổng chi phí:** {int(round(total_cost)):,} / {budget:,.0f} VND")
+            st.write(f"**🎯 Sở thích:** {', '.join(set(user_prefs))}")
+            
+            # Bản đồ tổng quan
+            st.markdown("---")
+            st.markdown("##### 🗺️ Bản đồ tổng quan")
+            
+            # Tạo Leaflet map với tất cả điểm đến
+            all_lats = [stop.get('lat', 0) for stop in route if stop.get('lat', 0) != 0]
+            all_lons = [stop.get('lon', 0) for stop in route if stop.get('lon', 0) != 0]
+            
+            if all_lats and all_lons:
+                center_lat = sum(all_lats) / len(all_lats)
+                center_lon = sum(all_lons) / len(all_lons)
+                
+                # Tạo danh sách markers cho map
+                markers_js = ""
+                for idx, stop in enumerate(route, 1):
+                    lat = stop.get('lat', 0)
+                    lon = stop.get('lon', 0)
+                    if lat != 0 and lon != 0:
+                        name = stop['name'].replace("'", "\\'").replace('"', '\\"')
+                        arrive = stop['arrive_time'].strftime('%H:%M')
+                        depart = stop['depart_time'].strftime('%H:%M')
+                        markers_js += f"""
+                L.marker([{lat}, {lon}], {{
+                    icon: L.divIcon({{
+                        html: '<div style="background: #2563eb; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">{idx}</div>',
+                        className: '',
+                        iconSize: [28, 28],
+                        iconAnchor: [14, 14]
+                    }})
+                }}).bindPopup('<b>{idx}. {name}</b><br>⏰ {arrive} - {depart}').addTo(map);
+                """
+                
+                map_html = f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="utf-8" />
+                    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+                    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+                    <style>
+                        body {{ margin: 0; padding: 0; }}
+                        #map {{ width: 100%; height: 400px; }}
+                    </style>
+                </head>
+                <body>
+                    <div id="map"></div>
+                    <script>
+                        var map = L.map('map').setView([{center_lat}, {center_lon}], 12);
+                        L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png', {{
+                            attribution: '&copy; OpenStreetMap',
+                            maxZoom: 19
+                        }}).addTo(map);
+                        {markers_js}
+                        
+                        // Vẽ đường nối các điểm
+                        var latlngs = [{', '.join([f'[{stop.get("lat", 0)}, {stop.get("lon", 0)}]' for stop in route if stop.get('lat', 0) != 0])}];
+                        L.polyline(latlngs, {{
+                            color: '#f5576c',
+                            weight: 3,
+                            opacity: 0.7,
+                            dashArray: '10, 5'
+                        }}).addTo(map);
+                        
+                        // Fit bounds
+                        if (latlngs.length > 0) {{
+                            map.fitBounds(latlngs, {{padding: [30, 30]}});
+                        }}
+                    </script>
+                </body>
+                </html>
+                """
+                
+                components.html(map_html, height=400)
+        
+        with col_details:
+            st.markdown("#### 📍 Chi tiết từng điểm")
+            
+            # Display each stop with address
+            for i, stop in enumerate(route, 1):
+                mode_icon = {"walking": "🚶", "motorbike": "🏍️", "taxi": "🚕"}.get(stop['mode'], "🚗")
+                lat = stop.get('lat', 0)
+                lon = stop.get('lon', 0)
+                
+                with st.expander(
+                    f"{i}. {stop['name']} ({stop['arrive_time'].strftime('%H:%M')} - {stop['depart_time'].strftime('%H:%M')})",
+                    expanded=(i==1)
+                ):
+                    # Địa chỉ POI với link Google Maps
+                    st.markdown(f"""
+                    <div style='background: linear-gradient(120deg, #ffecd2 0%, #fcb69f 100%); 
+                                padding: 0.8rem; border-radius: 8px; margin-bottom: 0.8rem;'>
+                        <div style='color: #1e293b; font-weight: 600; margin-bottom: 0.3rem;'>📍 {stop['name']}</div>
+                        <div style='color: #475569; font-size: 0.85rem;'>Tọa độ: {lat:.4f}, {lon:.4f}</div>
+                        <a href='https://www.google.com/maps/search/?api=1&query={lat},{lon}' 
+                           target='_blank' 
+                           style='color: #2563eb; font-size: 0.85rem; text-decoration: none; font-weight: 500;'>
+                           🗺️ Xem trên Google Maps →
+                        </a>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    st.write(f"**🚗 Di chuyển:** {mode_icon} {stop['mode'].title()}")
+                    st.write(f"**⏰ Đến:** {stop['arrive_time'].strftime('%H:%M')}")
+                    st.write(f"**⏰ Rời:** {stop['depart_time'].strftime('%H:%M')}")
+                    st.write(f"**💵 Chi phí di chuyển:** {stop['travel_cost']:,.0f} VND")
+                    st.write(f"**🎫 Vé vào cửa:** {stop['entry_fee']:,.0f} VND")
+        
+        # Save button
+        if st.session_state.get("current_user") is not None:
+            st.markdown("---")
+            if st.button("💾 Lưu lịch trình vào hồ sơ", width='stretch'):
+                user_id = st.session_state.get("user_id")
+                if not user_id:
+                    st.error("⚠️ Lỗi phiên đăng nhập: Không tìm thấy ID người dùng. Vui lòng đăng xuất và đăng nhập lại.")
+                elif user_id:
+                    # Prepare timeline for storage matching page_ho_so.py expectations
+                    timeline_to_save = []
+                    for stop in route:
+                        timeline_to_save.append({
+                            "place": stop['name'],
+                            "arrive": stop['arrive_time'].strftime('%H:%M'),
+                            "depart": stop['depart_time'].strftime('%H:%M'),
+                            "mode": stop.get('mode', 'walking'),
+                            "travel_cost": stop.get('travel_cost', 0),
+                            "entry_fee": stop.get('entry_fee', 0)
+                        })
+                    
+                    # Create a summary destination string
+                    dest_names = f"{len(route)} địa điểm tại TP.HCM"
+                    
+                    success, msg = db_utils.add_schedule(
+                        user_id,
+                        dest_names,
+                        budget,
+                        start_time.strftime('%H:%M'),
+                        end_time.strftime('%H:%M'),
+                        timeline_to_save,
+                    )
+                    if success:
+                        st.success("✅ Đã lưu thành công!")
+                    else:
+                        st.error(f"❌ Lỗi khi lưu: {msg}")
+                        st.write(f"Debug Info: User ID: {user_id} ({type(user_id)})")
+                        if "invalid input syntax for type uuid" in str(msg):
+                            st.warning("⚠️ Phiên đăng nhập cũ không tương thích. Vui lòng Đăng xuất và Đăng nhập lại.")
+        else:
+            st.info("💡 Đăng nhập để lưu lịch trình vào hồ sơ.")
+            
+    elif not submitted:
+        st.caption("⏳ Điền thông tin và bấm nút để nhận gợi ý tối ưu.")
+
 
 
 def render_tim_duong_di():
