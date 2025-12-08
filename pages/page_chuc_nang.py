@@ -16,14 +16,17 @@ except ImportError:
     st.warning("⚠️ Không tìm thấy module route_optimization. Sử dụng chế độ demo.")
 
 # Import algo2 modules (Routing/Navigation)
+ROUTING_ERROR = None
 try:
     from core.map_integration import get_directions
     from core.map_integration.routing import geocode
     ROUTING_AVAILABLE = True
-except ImportError:
+except ImportError as e:
     ROUTING_AVAILABLE = False
+    ROUTING_ERROR = str(e)
     geocode = None
     get_directions = None
+    # st.error(f"DEBUG: Import Error for Routing: {e}")
 
 # Import weather service
 try:
@@ -468,6 +471,10 @@ def render_tim_duong_di():
         
         if not ROUTING_AVAILABLE:
             st.warning("⚠️ Module routing chưa được cài đặt. Sử dụng chế độ demo.")
+            if ROUTING_ERROR:
+                st.error(f"🔍 Chi tiết lỗi: `{ROUTING_ERROR}`")
+                st.info("💡 Vui lòng kiểm tra lại các thư viện đã cài đặt (requests, folium, ...).")
+            
             st.markdown("#### 📍 Kết quả (Demo)")
             st.write(f"- **Từ:** {start_point}")
             st.write(f"- **Đến:** {end_point}")
