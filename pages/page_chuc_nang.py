@@ -718,8 +718,8 @@ def render_bao_thoi_tiet():
                 weather = get_weather(lat, lon)
             
             if not weather:
-                st.warning("⚠️ Không thể lấy dữ liệu thời tiết. Vui lòng kiểm tra API Key.")
-                st.info("💡 Bạn cần cấu hình `OPENWEATHER_API_KEY` trong `config.py`.")
+                st.warning("⚠️ Không thể lấy dữ liệu thời tiết. Vui lòng thử lại sau.")
+                # st.info("💡 Bạn cần cấu hình `OPENWEATHER_API_KEY` trong `config.py`.")
             else:
                 # Display weather info
                 st.markdown("#### 🌤️ Thông tin thời tiết")
