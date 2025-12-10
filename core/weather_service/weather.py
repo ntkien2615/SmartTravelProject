@@ -42,12 +42,35 @@ def get_weather(lat, lon):
         wind_speed_kmph = float(current["windspeedKmph"])
         wind_speed_ms = round(wind_speed_kmph / 3.6, 1)
         
+        # Lấy dự báo thời tiết (3 ngày)
+        forecast = []
+        if "weather" in data:
+            for day in data["weather"]:
+                # Lấy mô tả thời tiết (lấy buổi trưa hoặc mặc định)
+                day_desc = ""
+                if "hourly" in day and len(day["hourly"]) > 0:
+                    # Lấy khoảng giữa ngày (thường là index 4 cho 12:00)
+                    mid_day = day["hourly"][len(day["hourly"]) // 2]
+                    if "lang_vi" in mid_day:
+                        day_desc = mid_day["lang_vi"][0]["value"]
+                    elif "weatherDesc" in mid_day:
+                        day_desc = mid_day["weatherDesc"][0]["value"]
+                
+                forecast.append({
+                    "date": day["date"],
+                    "max_temp": float(day["maxtempC"]),
+                    "min_temp": float(day["mintempC"]),
+                    "description": day_desc,
+                    "uv": float(day.get("uvIndex", 0))
+                })
+
         return {
             "temp": float(current["temp_C"]),
             "feels_like": float(current["FeelsLikeC"]),
             "humidity": int(current["humidity"]),
             "description": description,
-            "wind_speed": wind_speed_ms
+            "wind_speed": wind_speed_ms,
+            "forecast": forecast
         }
     except (requests.exceptions.RequestException, KeyError, IndexError, ValueError) as e:
         print(f"Weather Error: {e}")

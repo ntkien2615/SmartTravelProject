@@ -721,15 +721,114 @@ def render_bao_thoi_tiet():
                 st.warning("⚠️ Không thể lấy dữ liệu thời tiết. Vui lòng thử lại sau.")
                 # st.info("💡 Bạn cần cấu hình `OPENWEATHER_API_KEY` trong `config.py`.")
             else:
-                # Display weather info
-                st.markdown("#### 🌤️ Thông tin thời tiết")
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.metric("🌡️ Nhiệt độ", f"{weather['temp']:.1f}°C", f"Cảm giác: {weather['feels_like']:.1f}°C")
-                    st.metric("💧 Độ ẩm", f"{weather['humidity']}%")
-                with col2:
-                    st.metric("☁️ Tình trạng", weather['description'].title())
-                    st.metric("💨 Gió", f"{weather['wind_speed']} m/s")
+                # Helper to get emoji
+                def get_weather_emoji(desc):
+                    desc = desc.lower()
+                    if "mưa" in desc or "rain" in desc: return "🌧️"
+                    if "mây" in desc or "cloud" in desc or "âm u" in desc: return "☁️"
+                    if "nắng" in desc or "sun" in desc or "quang" in desc: return "☀️"
+                    if "bão" in desc or "storm" in desc: return "⛈️"
+                    if "tuyết" in desc or "snow" in desc: return "❄️"
+                    if "sương" in desc or "fog" in desc: return "🌫️"
+                    return "🌤️"
+
+                # CSS for Weather UI
+                st.markdown("""
+                <style>
+                    .weather-card-main {
+                        background: linear-gradient(120deg, #3b82f6 0%, #2563eb 100%);
+                        color: white;
+                        padding: 20px;
+                        border-radius: 15px;
+                        box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2);
+                        margin-bottom: 20px;
+                    }
+                    .weather-temp-big {
+                        font-size: 48px;
+                        font-weight: bold;
+                    }
+                    .weather-desc-big {
+                        font-size: 20px;
+                        opacity: 0.9;
+                        text-transform: capitalize;
+                    }
+                    .weather-detail-row {
+                        display: flex;
+                        gap: 20px;
+                        margin-top: 15px;
+                        background: rgba(255,255,255,0.15);
+                        padding: 10px;
+                        border-radius: 10px;
+                    }
+                    .forecast-card {
+                        background-color: white;
+                        border: 1px solid #e5e7eb;
+                        border-radius: 12px;
+                        padding: 15px;
+                        text-align: center;
+                        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+                        height: 100%;
+                        color: #1f2937; /* Dark text */
+                    }
+                    .forecast-date {
+                        font-size: 14px;
+                        color: #6b7280;
+                        font-weight: 600;
+                    }
+                    .forecast-icon {
+                        font-size: 32px;
+                        margin: 10px 0;
+                    }
+                    .forecast-temp-range {
+                        font-weight: bold;
+                        color: #111827;
+                    }
+                    .forecast-desc-small {
+                        font-size: 13px;
+                        color: #4b5563;
+                        margin-top: 5px;
+                        text-transform: capitalize;
+                    }
+                </style>
+                """, unsafe_allow_html=True)
+
+                # Current Weather Display
+                emoji = get_weather_emoji(weather['description'])
+                st.markdown(f"""
+                <div class="weather-card-main">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div class="weather-desc-big">{emoji} {weather['description']}</div>
+                            <div class="weather-temp-big">{weather['temp']:.1f}°C</div>
+                            <div>Cảm giác như: {weather['feels_like']:.1f}°C</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="weather-detail-row">
+                                <div>💧 Độ ẩm<br><b>{weather['humidity']}%</b></div>
+                                <div>💨 Gió<br><b>{weather['wind_speed']} m/s</b></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                # Forecast Display
+                if "forecast" in weather and weather["forecast"]:
+                    st.markdown("#### 📅 Dự báo 3 ngày tới")
+                    cols = st.columns(len(weather["forecast"]))
+                    
+                    for idx, day in enumerate(weather["forecast"]):
+                        with cols[idx]:
+                            day_emoji = get_weather_emoji(day['description'])
+                            st.markdown(f"""
+                            <div class="forecast-card">
+                                <div class="forecast-date">{day['date']}</div>
+                                <div class="forecast-icon">{day_emoji}</div>
+                                <div class="forecast-temp-range">{day['min_temp']}° - {day['max_temp']}°C</div>
+                                <div class="forecast-desc-small">{day['description']}</div>
+                                <div style="font-size: 12px; color: #9ca3af; margin-top: 4px;">UV: {day.get('uv', 0)}</div>
+                            </div>
+                            """, unsafe_allow_html=True)
     else:
         st.caption("⏳ Nhập vị trí và bấm nút để xem thời tiết.")
 
