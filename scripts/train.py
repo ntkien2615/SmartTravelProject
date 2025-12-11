@@ -4,6 +4,9 @@ import time
 import torch
 from torch import nn, optim
 from torchvision import datasets, models, transforms
+from PIL import Image, ImageFile 
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+Image.LOAD_TRUNCATED_IMAGES = True
 
 # ============================
 # CẤU HÌNH CƠ BẢN
@@ -16,7 +19,7 @@ MODEL_PATH = "model_vietnam.pth"
 CLASSES_PATH = "classes.txt"
 
 BATCH_SIZE = 32
-NUM_EPOCHS = 50         # tăng số epoch, để early stopping tự dừng
+NUM_EPOCHS = 30      
 LR = 1e-4
 PATIENCE = 5             # nếu 5 epoch liên tiếp val_acc không tăng thì dừng
 

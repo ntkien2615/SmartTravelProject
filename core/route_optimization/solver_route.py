@@ -44,10 +44,20 @@ def load_pois(csv_path, filter_tags=None, min_rating=None, max_pois=None):
     
     # Convert to dict
     pois = df.to_dict("records")
-    for p in pois:
-        p["tags"] = p["tags"].split(";") if isinstance(p["tags"], str) else []
     
-    return pois
+    # Remove duplicates based on name (case-insensitive)
+    unique_pois = []
+    seen_names = set()
+    
+    for p in pois:
+        # Normalize name for duplicate checking
+        norm_name = str(p.get("name", "")).lower().strip()
+        if norm_name and norm_name not in seen_names:
+            p["tags"] = p["tags"].split(";") if isinstance(p["tags"], str) else []
+            unique_pois.append(p)
+            seen_names.add(norm_name)
+    
+    return unique_pois
 
 # ---------- Planner ----------
 def plan_route(pois, user_prefs=None, start_loc=DEFAULT_START,

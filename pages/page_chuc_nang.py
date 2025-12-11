@@ -301,6 +301,31 @@ def render_tao_danh_sach_goi_y():
             st.write(f"**💰 Tổng chi phí:** {int(round(total_cost)):,} / {budget:,.0f} VND")
             st.write(f"**🎯 Sở thích:** {', '.join(set(user_prefs))}")
             
+            # --- Tính năng chia sẻ lịch trình ---
+            st.markdown("---")
+            st.markdown("##### 📤 Chia sẻ lịch trình")
+            
+            # Tạo nội dung text để chia sẻ
+            share_content = f"📅 Lịch trình du lịch TP.HCM\n"
+            share_content += f"📍 Xuất phát: {start_location}\n"
+            share_content += f"⏰ Thời gian: {start_time.strftime('%H:%M')} - {end_time.strftime('%H:%M')}\n"
+            share_content += f"💰 Chi phí: {int(round(total_cost)):,} VND\n\n"
+            share_content += "🗺️ Chi tiết:\n"
+            
+            for idx, stop in enumerate(route, 1):
+                share_content += f"{idx}. {stop['name']} ({stop['arrive_time'].strftime('%H:%M')} - {stop['depart_time'].strftime('%H:%M')})\n"
+            
+            st.download_button(
+                label="📥 Tải xuống lịch trình (.txt)",
+                data=share_content,
+                file_name="lich_trinh_tphcm.txt",
+                mime="text/plain"
+            )
+            
+            with st.expander("📋 Xem nội dung text để copy"):
+                st.code(share_content, language="text")
+            # ------------------------------------
+
             # Bản đồ tổng quan
             st.markdown("---")
             st.markdown("##### 🗺️ Bản đồ tổng quan")

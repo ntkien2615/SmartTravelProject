@@ -49,10 +49,35 @@ def _fetch_osrm_data(lon1, lat1, lon2, lat2, vehicle_type, params):
 def geocode(location_name):
     """
     Tìm tọa độ từ tên địa điểm.
-    Chiến lược: Photon (Komoot) -> Nominatim -> Open-Meteo
+    Chiến lược: Hardcoded -> Photon (Komoot) -> Nominatim -> Open-Meteo
     """
     # 0. Chuẩn hóa tên địa điểm phổ biến
     location_name = location_name.replace("TP.HCM", "Hồ Chí Minh").replace("TPHCM", "Hồ Chí Minh").replace("Sài Gòn", "Hồ Chí Minh")
+
+    # 1. Hardcoded locations (Fix lỗi data/geocoding)
+    HARDCODED_LOCATIONS = {
+        "chợ bến thành": (10.7721, 106.6983, "Chợ Bến Thành, Quận 1, TP.HCM"),
+        "cho ben thanh": (10.7721, 106.6983, "Chợ Bến Thành, Quận 1, TP.HCM"),
+        "bến thành": (10.7721, 106.6983, "Chợ Bến Thành, Quận 1, TP.HCM"),
+        "ben thanh": (10.7721, 106.6983, "Chợ Bến Thành, Quận 1, TP.HCM"),
+        "hồ con rùa": (10.7826, 106.6959, "Hồ Con Rùa, Quận 3, TP.HCM"),
+        "ho con rua": (10.7826, 106.6959, "Hồ Con Rùa, Quận 3, TP.HCM"),
+        "nhà thờ đức bà": (10.7798, 106.6990, "Nhà thờ Đức Bà Sài Gòn, Quận 1, TP.HCM"),
+        "nha tho duc ba": (10.7798, 106.6990, "Nhà thờ Đức Bà Sài Gòn, Quận 1, TP.HCM"),
+        "dinh độc lập": (10.7769, 106.6953, "Dinh Độc Lập, Quận 1, TP.HCM"),
+        "dinh doc lap": (10.7769, 106.6953, "Dinh Độc Lập, Quận 1, TP.HCM"),
+        "phố đi bộ nguyễn huệ": (10.7736, 106.7036, "Phố đi bộ Nguyễn Huệ, Quận 1, TP.HCM"),
+        "pho di bo nguyen hue": (10.7736, 106.7036, "Phố đi bộ Nguyễn Huệ, Quận 1, TP.HCM"),
+        "bùi viện": (10.7674, 106.6939, "Phố đi bộ Bùi Viện, Quận 1, TP.HCM"),
+        "bui vien": (10.7674, 106.6939, "Phố đi bộ Bùi Viện, Quận 1, TP.HCM"),
+        "landmark 81": (10.7951, 106.7218, "Landmark 81, Bình Thạnh, TP.HCM"),
+        "sân bay tân sơn nhất": (10.8185, 106.6588, "Sân bay Tân Sơn Nhất, TP.HCM"),
+        "san bay tan son nhat": (10.8185, 106.6588, "Sân bay Tân Sơn Nhất, TP.HCM"),
+    }
+    
+    lower_name = location_name.lower().strip()
+    if lower_name in HARDCODED_LOCATIONS:
+        return HARDCODED_LOCATIONS[lower_name]
 
     def _search_photon(query):
         try:

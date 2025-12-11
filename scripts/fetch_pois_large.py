@@ -47,7 +47,7 @@ def query_overpass(query, timeout=180):
                 return None
     return None
 
-def get_pois_comprehensive(category_queries, max_per_query=500):
+def get_pois_comprehensive(category_queries, max_per_query=5000):
     """
     Lấy POIs toàn diện từ nhiều categories
     """
