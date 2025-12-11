@@ -48,9 +48,58 @@ def _fetch_osrm_data(lon1, lat1, lon2, lat2, vehicle_type, params):
 
 def geocode(location_name):
     """
-    Tìm tọa độ từ tên địa điểm sử dụng Open-Meteo Geocoding API.
+    Tìm tọa độ từ tên địa điểm.
+    Chiến lược: Photon (Komoot) -> Nominatim -> Open-Meteo
     """
-    def _search(query):
+    # 0. Chuẩn hóa tên địa điểm phổ biến
+    location_name = location_name.replace("TP.HCM", "Hồ Chí Minh").replace("TPHCM", "Hồ Chí Minh").replace("Sài Gòn", "Hồ Chí Minh")
+
+    def _search_photon(query):
+        try:
+            url = "https://photon.komoot.io/api/"
+            params = {"q": query, "limit": 1}
+            r = requests.get(url, params=params, timeout=5)
+            data = r.json()
+            if data["features"]:
+                feat = data["features"][0]
+                props = feat["properties"]
+                coords = feat["geometry"]["coordinates"]
+                # Photon returns [lon, lat]
+                name = props.get("name") or props.get("street") or query
+                return float(coords[1]), float(coords[0]), name
+        except Exception:
+            return None
+        return None
+
+    def _search_nominatim(query):
+        try:
+            url = "https://nominatim.openstreetmap.org/search"
+            params = {
+                "q": query,
+                "format": "json",
+                "limit": 1,
+                "addressdetails": 1,
+                "countrycodes": "vn"  # Giới hạn tìm kiếm trong Việt Nam
+            }
+            # User-Agent giả lập trình duyệt để tránh bị chặn 403
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+                "Referer": "https://www.openstreetmap.org/"
+            }
+            
+            r = requests.get(url, params=params, headers=headers, timeout=10)
+            r.raise_for_status()
+            data = r.json()
+            
+            if data:
+                result = data[0]
+                return float(result["lat"]), float(result["lon"]), result["display_name"]
+        except Exception as e:
+            print(f"Nominatim error for '{query}': {e}")
+            return None
+        return None
+
+    def _search_open_meteo(query):
         try:
             url = "https://geocoding-api.open-meteo.com/v1/search"
             params = {
@@ -59,7 +108,7 @@ def geocode(location_name):
                 "language": "vi",
                 "format": "json"
             }
-            headers = {"User-Agent": "MyWeatherApp/1.0"}
+            headers = {"User-Agent": "SmartTravelApp/1.0"}
             r = requests.get(url, params=params, headers=headers, timeout=5)
             r.raise_for_status()
             data = r.json()
@@ -70,20 +119,85 @@ def geocode(location_name):
             return None
         return None
 
-    # 0. Chuẩn hóa tên địa điểm phổ biến
-    location_name = location_name.replace("TP.HCM", "Hồ Chí Minh").replace("TPHCM", "Hồ Chí Minh").replace("Sài Gòn", "Hồ Chí Minh")
-
-    # 1. Thử tìm chính xác
-    res = _search(location_name)
+    # Chiến lược tìm kiếm:
+    # 1. Nominatim (Chính xác nhất cho POI)
+    res = _search_nominatim(location_name)
     if res: return res
 
-    # 2. Thử bỏ phần sau dấu phẩy (ví dụ: "Dinh Độc Lập, TPHCM" -> "Dinh Độc Lập")
+    # 2. Xử lý fallback thông minh khi không tìm thấy chính xác
     if "," in location_name:
-        simple_name = location_name.split(",")[0].strip()
-        res = _search(simple_name)
-        if res: return res
+        parts = [p.strip() for p in location_name.split(",")]
         
+        # Chiến lược A: Bỏ phần đầu (thường là số nhà/ngõ ngách) nhưng giữ lại ngữ cảnh thành phố
+        # Ví dụ: "52/8, Đường 12, Bình Tân, HCM" -> "Đường 12, Bình Tân, HCM"
+        if len(parts) > 1:
+            rest_of_address = ", ".join(parts[1:])
+            res = _search_nominatim(rest_of_address)
+            if res: return res
+
+        # Chiến lược B: Chỉ lấy Quận/Huyện + Thành phố (2 phần cuối)
+        # Ví dụ: "Bình Tân, HCM"
+        if len(parts) >= 2:
+            city_context = ", ".join(parts[-2:])
+            res = _search_nominatim(city_context)
+            if res: return res
+
+    # 3. Photon (Nhanh, ít bị chặn, nhưng đôi khi kém chính xác hơn Nominatim)
+    res = _search_photon(location_name)
+    if res: return res
+
+    # 4. Fallback: Open-Meteo (Tốt cho tên thành phố/quận)
+    res = _search_open_meteo(location_name)
+    if res: return res
+    
     return None
+
+def get_instruction_text(maneuver):
+    """Tạo hướng dẫn chỉ đường tiếng Việt từ OSRM maneuver"""
+    m_type = maneuver.get("type", "")
+    modifier = maneuver.get("modifier", "")
+    
+    # Mapping modifiers
+    directions = {
+        "uturn": "quay đầu",
+        "sharp right": "rẽ gắt sang phải",
+        "right": "rẽ phải",
+        "slight right": "chếch sang phải",
+        "straight": "đi thẳng",
+        "slight left": "chếch sang trái",
+        "left": "rẽ trái",
+        "sharp left": "rẽ gắt sang trái"
+    }
+    
+    direction_text = directions.get(modifier, "")
+    
+    if m_type == "depart":
+        return f"Xuất phát về hướng {direction_text}" if direction_text else "Xuất phát"
+    elif m_type == "arrive":
+        return "Đến đích"
+    elif m_type == "turn":
+        return f"{direction_text.capitalize()}" if direction_text else "Rẽ"
+    elif m_type == "merge":
+        return f"Nhập làn {direction_text}" if direction_text else "Nhập làn"
+    elif m_type == "on ramp":
+        return f"Vào đường dẫn {direction_text}" if direction_text else "Vào đường dẫn"
+    elif m_type == "off ramp":
+        return f"Ra đường dẫn {direction_text}" if direction_text else "Ra đường dẫn"
+    elif m_type == "fork":
+        return f"Tại ngã ba, {direction_text}" if direction_text else "Tại ngã ba"
+    elif m_type == "end of road":
+        return f"Hết đường, {direction_text}" if direction_text else "Hết đường"
+    elif m_type == "roundabout" or m_type == "rotary":
+        exit_num = maneuver.get("exit", "")
+        if exit_num:
+            return f"Vào vòng xuyến và ra ở lối thứ {exit_num}"
+        return "Vào vòng xuyến"
+    elif m_type == "exit roundabout":
+        return "Ra khỏi vòng xuyến"
+    elif m_type == "notification":
+        return "Lưu ý"
+    else:
+        return f"{direction_text.capitalize()}" if direction_text else "Đi tiếp"
 
 def osrm_route(lon1, lat1, lon2, lat2, vehicle_type="driving"):
     """
@@ -111,7 +225,8 @@ def osrm_route(lon1, lat1, lon2, lat2, vehicle_type="driving"):
         steps = []
         for leg in route["legs"]:
             for step in leg["steps"]:
-                instruction = step.get("maneuver", {}).get("instruction", "Tiếp tục")
+                maneuver = step.get("maneuver", {})
+                instruction = get_instruction_text(maneuver)
                 street = step.get("name", "")
                 distance_m = step.get("distance", 0)
                 steps.append({
