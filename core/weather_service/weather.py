@@ -90,5 +90,6 @@ def get_weather(lat, lon):
         }
     except Exception as e:
         print(f"Weather Error: {e}")
+
         return None
 
