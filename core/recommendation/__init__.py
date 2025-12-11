@@ -3,7 +3,7 @@ Algo5: Location Suggestions
 Suggests locations based on user preferences
 """
 
-# TODO: Implement location suggestion functionality
+from .recommender import recommend_places
 
-__all__ = []
+__all__ = ['recommend_places']
 

@@ -4,7 +4,12 @@
 from .config import ALPHA, BETA, GAMMA, DELTA, EPSILON
 
 def preference_score(poi_tags, user_prefs):
-    tags = set(str(poi_tags).split(";"))
+    # poi_tags is already a list from load_pois
+    if isinstance(poi_tags, str):
+        tags = set(poi_tags.split(";"))
+    else:
+        tags = set(poi_tags)
+        
     inter = len(tags.intersection(set(user_prefs)))
     return inter / len(user_prefs) if user_prefs else 0
 

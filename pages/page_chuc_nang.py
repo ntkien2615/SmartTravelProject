@@ -43,6 +43,13 @@ try:
 except ImportError:
     IMAGE_RECOGNITION_AVAILABLE = False
 
+# Import algo5 modules (Recommendation)
+try:
+    from core.recommendation import recommend_places
+    RECOMMENDATION_AVAILABLE = True
+except ImportError:
+    RECOMMENDATION_AVAILABLE = False
+
 
 def page_chuc_nang():
     """Hiển thị nội dung trang chức năng với 4 nút lựa chọn."""
@@ -497,7 +504,10 @@ def render_tim_duong_di():
             vehicle_icon = "🚗" if mode == "Ô tô" else "🏍️"
             
             with st.spinner(f"🔍 Đang tìm đường cho {vehicle_icon} {mode}..."):
-                result = get_directions(start_point, end_point, vehicle_type)
+                if get_directions:
+                    result = get_directions(start_point, end_point, vehicle_type)
+                else:
+                    result = None
             
             if not result:
                 st.error("❌ Không tìm thấy đường đi. Vui lòng kiểm tra lại địa chỉ.")
@@ -891,25 +901,23 @@ def render_goi_y_dia_diem():
             st.warning("⚠️ Vui lòng chọn ít nhất 1 sở thích!")
         else:
             # Load và filter POIs
-            if ALGO_AVAILABLE:
+            if RECOMMENDATION_AVAILABLE:
                 with st.spinner("🔍 Đang tìm kiếm địa điểm phù hợp..."):
                     try:
                         csv_path = os.path.join(os.path.dirname(__file__), "..", "data", "pois_hcm_large.csv")
                         
                         # Filter POIs theo sở thích
                         tourism_tags = list(set(user_prefs))
-                        pois = load_pois(
-                            csv_path, 
-                            filter_tags=tourism_tags,
-                            min_rating=3.5,
-                            max_pois=num_results * 2  # Lấy nhiều hơn để sort
+                        pois_sorted = recommend_places(
+                            csv_path,
+                            user_prefs=tourism_tags,
+                            num_results=num_results,
+                            min_rating=3.5
                         )
                         
-                        if not pois:
+                        if not pois_sorted:
                             st.error("❌ Không tìm thấy địa điểm nào phù hợp với sở thích của bạn.")
                         else:
-                            # Sort theo rating và hiển thị
-                            pois_sorted = sorted(pois, key=lambda x: x.get('rating', 0), reverse=True)[:num_results]
                             
                             st.success(f"✅ Tìm thấy **{len(pois_sorted)}** địa điểm phù hợp!")
                             
@@ -1001,4 +1009,4 @@ def render_goi_y_dia_diem():
                         st.error(f"❌ Lỗi: {str(e)}")
                         st.info("Vui lòng kiểm tra lại dữ liệu hoặc liên hệ admin.")
             else:
-                st.error("❌ Module thuật toán chưa được cài đặt.")
+                st.error("❌ Module Recommendation chưa được cài đặt.")
