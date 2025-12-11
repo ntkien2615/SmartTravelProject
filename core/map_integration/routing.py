@@ -46,28 +46,44 @@ def _fetch_osrm_data(lon1, lat1, lon2, lat2, vehicle_type, params):
             
     return None
 
-def geocode(address):
+def geocode(location_name):
     """
-    Chuyển địa chỉ thành tọa độ (lat, lon).
-    Returns: (lat, lon, display_name) hoặc None nếu lỗi
+    Tìm tọa độ từ tên địa điểm sử dụng Open-Meteo Geocoding API.
     """
-    try:
-        time.sleep(1.0)  # Rate limiting
-        session = get_session()
-        r = session.get(
-            f"{NOMINATIM}/search", 
-            params={"q": address, "format": "jsonv2", "limit": 1}, 
-            headers=UA,
-            timeout=30
-        )
-        r.raise_for_status()
-        j = r.json()
-        if not j:
+    def _search(query):
+        try:
+            url = "https://geocoding-api.open-meteo.com/v1/search"
+            params = {
+                "name": query,
+                "count": 1,
+                "language": "vi",
+                "format": "json"
+            }
+            headers = {"User-Agent": "MyWeatherApp/1.0"}
+            r = requests.get(url, params=params, headers=headers, timeout=5)
+            r.raise_for_status()
+            data = r.json()
+            if "results" in data and len(data["results"]) > 0:
+                result = data["results"][0]
+                return result["latitude"], result["longitude"], result["name"]
+        except Exception:
             return None
-        return float(j[0]["lat"]), float(j[0]["lon"]), j[0].get("display_name", address)
-    except Exception as e:
-        print(f"Geocode error: {e}")
         return None
+
+    # 0. Chuẩn hóa tên địa điểm phổ biến
+    location_name = location_name.replace("TP.HCM", "Hồ Chí Minh").replace("TPHCM", "Hồ Chí Minh").replace("Sài Gòn", "Hồ Chí Minh")
+
+    # 1. Thử tìm chính xác
+    res = _search(location_name)
+    if res: return res
+
+    # 2. Thử bỏ phần sau dấu phẩy (ví dụ: "Dinh Độc Lập, TPHCM" -> "Dinh Độc Lập")
+    if "," in location_name:
+        simple_name = location_name.split(",")[0].strip()
+        res = _search(simple_name)
+        if res: return res
+        
+    return None
 
 def osrm_route(lon1, lat1, lon2, lat2, vehicle_type="driving"):
     """
@@ -132,15 +148,6 @@ def get_route_geometry(lon1, lat1, lon2, lat2, vehicle_type="driving"):
         if not data or not data.get("routes"):
             return None, None, None
 
-        route = data["routes"][0]
-        
-        return (
-            route["geometry"],
-            route["distance"] / 1000.0,
-            route["duration"] / 3600.0
-        )
-        r.raise_for_status()
-        data = r.json()
         route = data["routes"][0]
         
         return (

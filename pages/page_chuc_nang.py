@@ -204,11 +204,22 @@ def render_tao_danh_sach_goi_y():
                                 max_pois=500  # Giới hạn để thuật toán chạy nhanh
                             )
                             
+                            # Determine start location coordinates
+                            start_coords = (10.7769, 106.7006) # Default: Dinh Độc Lập
+                            
+                            if geocode:
+                                geo_res = geocode(start_location)
+                                if geo_res:
+                                    start_coords = (geo_res[0], geo_res[1])
+                                    # st.success(f"📍 Đã xác định vị trí xuất phát: {geo_res[2]}")
+                                else:
+                                    st.warning(f"⚠️ Không tìm thấy địa điểm '{start_location}'. Sử dụng vị trí mặc định (Trung tâm Q1).")
+                            
                             # Call algorithm
                             route = plan_route(
                                 pois=pois,
                                 user_prefs=user_prefs,
-                                start_loc=(10.7769, 106.7006),
+                                start_loc=start_coords,
                                 time_window=time_window,
                                 budget=float(budget)
                             )
@@ -691,7 +702,7 @@ def render_bao_thoi_tiet():
     with st.form("weather_form"):
         location = st.text_input(
             "📍 Vị trí",
-            value="TP.HCM, Việt Nam",
+            value="Hồ Chí Minh",
             help="Nhập tên địa điểm hoặc tọa độ"
         )
         submitted = st.form_submit_button("🌤️ Xem thời tiết", width='stretch')
