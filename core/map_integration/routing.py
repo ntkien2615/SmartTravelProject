@@ -1,6 +1,7 @@
 #core/routing.py — Algo2: Tìm đường đi với OSRM + Nominatim
 import time
 import requests
+import math
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
@@ -363,8 +364,41 @@ def get_directions(start_address, end_address, vehicle_type="driving"):
     
     # Get route
     route = osrm_route(lon1, lat1, lon2, lat2, vehicle_type)
+    
+    # Fallback: Straight line if OSRM fails
     if not route:
-        return None
+        print(f"OSRM failed. Using straight line fallback for {name1} -> {name2}")
+        
+        # Calculate Haversine distance
+        R = 6371  # Earth radius in km
+        dlat = math.radians(lat2 - lat1)
+        dlon = math.radians(lon2 - lon1)
+        a = math.sin(dlat / 2) * math.sin(dlat / 2) + \
+            math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * \
+            math.sin(dlon / 2) * math.sin(dlon / 2)
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+        dist_km = R * c
+        
+        # Estimate duration (30km/h for car, 20km/h for bike)
+        speed = 30 if vehicle_type == "driving" else 20
+        duration_min = (dist_km / speed) * 60
+        
+        route = {
+            "distance_km": round(dist_km, 2),
+            "duration_min": round(duration_min, 0),
+            "steps": [
+                {
+                    "instruction": f"Đi thẳng từ {name1} đến {name2} (Ước tính đường chim bay)",
+                    "street": "Đường thẳng",
+                    "distance_m": int(dist_km * 1000)
+                }
+            ],
+            # Create a simple straight line geometry (GeoJSON LineString)
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [[lon1, lat1], [lon2, lat2]]
+            }
+        }
     
     return {
         "start": {"lat": lat1, "lon": lon1, "name": name1},
